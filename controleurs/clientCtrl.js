@@ -138,8 +138,8 @@ function getClientInfo (clientId,callback){
 function historique(req,res){
 
      //récupérer le Access token du banquier qui veut valider le compte banquaire
-    // const token = req.headers['token']; 
-     const token='BiIPt8QusRfK6LqpcmHU1SkJ8yL4W79DhBuFeDkXgEpnCk3y1E4Yg56ljkpcVEPN8wnpEluBVKMGgHMZMVrJdLZ5YCe4ux5GqI1yYIuEO4FsJhN0aAi62a3PKViS51JlAWRrd8jldeREXXJwQ3OG96vgXi8Fon3HLyuhBlODiZyEOevVTT7c6UiKRELL2uRTxDE3aGP85b8Nbvh7Op7FWDjedqdadpt3EmlviLhTtMrr34PkpNKB2YCjb1i3xA4';
+    const token = req.headers['token']; 
+    // const token='BiIPt8QusRfK6LqpcmHU1SkJ8yL4W79DhBuFeDkXgEpnCk3y1E4Yg56ljkpcVEPN8wnpEluBVKMGgHMZMVrJdLZ5YCe4ux5GqI1yYIuEO4FsJhN0aAi62a3PKViS51JlAWRrd8jldeREXXJwQ3OG96vgXi8Fon3HLyuhBlODiZyEOevVTT7c6UiKRELL2uRTxDE3aGP85b8Nbvh7Op7FWDjedqdadpt3EmlviLhTtMrr34PkpNKB2YCjb1i3xA4';
      var iduser={};
      tokenController(token, function(response){
  
