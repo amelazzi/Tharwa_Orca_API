@@ -69,7 +69,7 @@ else {
 function Virement_local(req, res){
 
     const token = req.headers['token']; //récupérer le Access token
-    console.log("token= "+req.headers.authorization.substring(7));
+    //console.log("token= "+req.headers.authorization.substring(7));
     // recuperer les parametres 
     var Montant=req.body.montant;
     var Type1 = req.body.type1;
