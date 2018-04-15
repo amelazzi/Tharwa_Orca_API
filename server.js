@@ -83,6 +83,8 @@ server.use('/virement',VirementRoute);
 const GestionnaireRoute = require('./routes/GestionnaireRoute')(express,GestionnaireController,tokenController);
 server.use('/gestionnaire',GestionnaireRoute);
 
+//test 
+//const testFct = require('./test/testFct')(fcts);
 
 server.listen(8080,function (){
    console.log("Serveur en écoute !");
