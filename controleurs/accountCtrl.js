@@ -112,7 +112,7 @@ function CreateNewBanqueAccount(idClient,type,callback){
                                        }
                                        callback(response);
                                     }
-                                   
+                                    
                                })
                            } else {
                                response = {
