@@ -30,10 +30,20 @@ module.exports = function(express,VirementController){
 /*--------------------------------Service pour la liste des virements non encore traités------------------------------------*/
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
-    
-const router = express.Router();
+
 router.get('/ListVirementNonTraites',(req,res) =>{
     VirementController.Listes_virements_non_traites(req,res);
+});
+
+
+/*-----------------------------------------------------------------------------------------------------------------------*/   
+
+/*--------------------------------Service pour la liste des virements non encore traités------------------------------------*/
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
+
+router.post('/validRejetVir',(req,res) =>{
+    VirementController.validerRejeterVirement(req,res);
 });
 
 return router;

@@ -1,3 +1,5 @@
+
+
 //imports
 const express = require("express");
 const bodyParser = require('body-parser');
@@ -51,17 +53,15 @@ const Virement = sequelize.import(__dirname + "/models/Virement");
 const Banque = sequelize.import(__dirname + "/models/Banque");
 
 //Controllers
+const fcts=require('./controleurs/fcts')(Compte,Client,sequelize);
 const tokenController = require('./controleurs/tokenCtrl');
 const usersController = require('./controleurs/usersCtrl')(User,sequelize);
-const clientController = require('./controleurs/clientCtrl')(Client,sequelize);
+const clientController = require('./controleurs/clientCtrl')(Client,sequelize,fcts);
 const accountController = require('./controleurs/accountCtrl')(Client,Compte,sequelize);
-const VirementController = require('./controleurs/VirementCntrl')(Virement,Compte,User,Client,sequelize);
+const VirementController = require('./controleurs/VirementCntrl')(Virement,Compte,User,Client,sequelize,fcts);
 const GestionnaireController = require('./controleurs/GestionnaireCntrl')(Virement,User,Banque,sequelize);
 
-
-
 //Routes
-
 const usersRoute = require('./routes/usersRoutes')(express,tokenController,usersController,clientController,accountController);
 server.use('/users',usersRoute);
 
@@ -78,12 +78,14 @@ server.use('/virement',VirementRoute);
 const GestionnaireRoute = require('./routes/GestionnaireRoute')(express,GestionnaireController,tokenController);
 server.use('/gestionnaire',GestionnaireRoute);
 
-//mettre le serveur en écoute 
 
 server.listen(8080,function (){
    console.log("Serveur en écoute !");
    console.log(__dirname)
 });
+
+module.exports = server; // pour le test 
+
 
 
 

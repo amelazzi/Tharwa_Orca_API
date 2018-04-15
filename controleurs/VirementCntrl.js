@@ -4,7 +4,7 @@ var crypto = require('crypto');
 var http = require("http");
 const request = require('request');
 var tokenVerifier = require('./tokenCtrl');
-var conversion = require('./fctCtrl');
+//var conversion = require('./fctCtrl');
 var async = require('async-if-else')(require('async'));
 //var async = require('async-if-else');
 //Routes
@@ -31,11 +31,6 @@ function TranferClientTH(req, res){
     }
   
     const token = req.headers['token']; //récupérer le Access token
-    console.log("token= "+req.headers.authorization.substring(7));
-    
-   const token = req.headers['token']; //récupérer le Access token
-  
-   
     tokenVerifier(token, function(response){   //vérifier le access token auprès du serveur d'authentification      
     
     if (response.statutCode == 200){ //si le serveur d'authentification répond positivement (i.e: Access token valide)
@@ -483,7 +478,39 @@ function Listes_virements_non_traites(req, res){
 })
 }
 
-return {TranferClientTH,Virement_local,Listes_virements_non_traites};
+
+/*-----------------------------------------------------------------------------------------------------------------------*/   
+
+/*--------------------------------Procedure pour valider ou rejeter un virement -----------------------------------------*/
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
+function validerRejeterVirement(req, res){
+
+    var Code=req.body.code;
+    var Statut = req.body.statut;
+    console.log("le code est "+ Code + "le statut "+ Statut);
+
+    const token = req.headers['token']; //récupérer le Access token
+    
+    tokenVerifier(token, function(response){   //vérifier le access token auprès du serveur d'authentification      
+    
+    if (response.statutCode == 200){ 
+            sequelize.query('exec ValRejVir $Cod, $Stat', 
+            {
+                bind: {
+                        Cod: Code, 
+                        Stat: Statut,   //Compte destination                                                                                                                                                                                                                      
+                     }
+                     
+            }).then((response) => {
+                return( res.status(200).json({'succe':'Virement est mit à jour'}));
+            
+             }).catch(err => {return(res.status(401).json({'error': 'Aucun virement mit à jour '}))});                                             
+}
+})
+}
+
+return {TranferClientTH,Virement_local,Listes_virements_non_traites,validerRejeterVirement};
 }
 
 
