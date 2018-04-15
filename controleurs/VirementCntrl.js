@@ -210,7 +210,7 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
                 if (Compte1.Balance<Montant){ // verifier si le montant à virer ne depasse pas la balance du compte
                     console.log('balance insuff');
                     response = {
-                        'statutCode' : 403, // success
+                        'statutCode' : 403, //
                         'error': 'Balance insuffisante'          
                     }
                     rep(response);
@@ -220,7 +220,7 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
                 else callback();
               }).catch(err => {
                 response = {
-                    'statutCode' : 404, // success
+                    'statutCode' : 404, //
                     'error': 'Compte emmeteur non existant'          
                 }
                 rep(response);
@@ -293,14 +293,14 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
                                 type2:Type2,
                                 id:idcom
                                    }
-                            }).then((res) => {
+                    }).then((res) => {
                                 response = {
                                     'statutCode' : 200, //succe
                                     'succe': 'Virement  effectue avec succe'          
                                 }
                                 rep(response);
                                 
-                            }).catch(err => {
+                    }).catch(err => {
                                 response = {
                                     'statutCode' : 500, // error
                                     'error': 'Virement non effectue'          
@@ -308,7 +308,7 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
                                 rep(response);
                                
                                 
-                            });
+                    });
                 });
             }
             else {

@@ -10,7 +10,7 @@ module.exports = function(express,tokenController,accountController){
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
 router.post('/new',(req,res) =>{
-    //récupérer le Access token du banquier qui veut valider le compte banquaire
+    
     const token = req.headers['token']; 
     tokenController(token, function(OauthResponse){
         if (OauthResponse.statutCode == 200){

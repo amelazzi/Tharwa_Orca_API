@@ -21,32 +21,8 @@ function CreateNewBanqueAccount(idClient,type,callback){
             where: {  'IdUser' : idClient, "TypeCompte" : 0 }
         }
     ).then(function(CourantAccountFound){
-        if (type == 0){
-            if(CourantAccountFound){
-                response = {
-                    'statutCode' : 409, // conflit
-                    'error':'account already exist'
-                }
-                callback(response);
-            }else {
-                compte_access.CreateBanqueAccount(idClient,'DZD',type,(newAccount)=>{
-                    if (newAccount){
-                       response = {
-                           'statutCode' : 201, // created    
-                       }
-                       callback(response);
-                    } else {
-                       response = {
-                           'statutCode' : 500, // internal error
-                           'error':'cant create accounte'
-                       }
-                       callback(response);
-                    }
-                   
-               })
-            }
-        }
-        else {
+       
+        
             if(CourantAccountFound){
                 if(CourantAccountFound.Etat == 1){
                    Compte.findOne(
@@ -147,7 +123,7 @@ function CreateNewBanqueAccount(idClient,type,callback){
                }
                callback(response);
            }
-        }
+        
         
     }).catch((err)=>{
         console.log(err);

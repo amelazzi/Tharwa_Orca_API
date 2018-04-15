@@ -5,8 +5,7 @@ const datetime = require('node-datetime');
 //exports
 module.exports = function(Compte,sequelize) {
 
-
-    /*-----------------------------------------------------------------------------------------------------------------------*/
+ /*-----------------------------------------------------------------------------------------------------------------------*/
 
 /*-------------------------------------prodédure de création d'un compte bancaire---------------------------------------*/
 
@@ -26,24 +25,12 @@ module.exports = function(Compte,sequelize) {
             var rows = JSON.parse(JSON.stringify(results[0]));
             var numSeq = rows.id;
             var middle = numSeq.toString();
-            if (middle.length == 1){
-                middle = '00000'+middle;
-            }else if (middle.length == 2){
-                middle = '0000'+middle;
-            }else if (middle.length == 3){
-                middle = '000'+middle;
-            }else if (middle.length == 4){
-                middle = '00'+middle;
-            }else if (middle.length == 5){
-                middle = '0'+middle;
-            }
-
-            var num = 'THW'+ middle + codeMonnaie;
+           
             var balance = 0;
             var idUser = idClient;
             var etat = 0;
             var typeCompte = TypeCompte;
-
+            var num = makeNumAccount (middle,codeMonnaie)
             var newCompte = Compte.create({
                 Num : num,
                 Balance : balance,
@@ -76,5 +63,30 @@ module.exports = function(Compte,sequelize) {
      
     }
 
-    return {CreateBanqueAccount};
+/*-----------------------------------------------------------------------------------------------------------------------*/
+
+/*-------------------------------------construire un numéro de compte---------------------------------------*/
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
+  function makeNumAccount (middle,codeMonnaie){
+
+    if (middle.length == 1){
+        middle = '00000'+middle;
+    }else if (middle.length == 2){
+        middle = '0000'+middle;
+    }else if (middle.length == 3){
+        middle = '000'+middle;
+    }else if (middle.length == 4){
+        middle = '00'+middle;
+    }else if (middle.length == 5){
+        middle = '0'+middle;
+    }
+
+    var num = 'THW'+ middle + codeMonnaie;
+    return num
+  }
+
+
+
+    return {CreateBanqueAccount,makeNumAccount};
 }
