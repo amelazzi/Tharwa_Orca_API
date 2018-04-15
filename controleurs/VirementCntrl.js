@@ -4,10 +4,11 @@ var crypto = require('crypto');
 var http = require("http");
 const request = require('request');
 var tokenVerifier = require('./tokenCtrl');
+//var conversion = require('./fctCtrl');
 var async = require('async-if-else')(require('async'));
 //var async = require('async-if-else');
 //Routes
-module.exports = function(Virement,Compte,User,Client,sequelize,fcts) {
+module.exports = function(Virement,Compte,User,Client,sequelize) {
 
 /*-----------------------------------------------------------------------------------------------------------------------*/   
 
@@ -29,12 +30,7 @@ function TranferClientTH(req, res){
         return res.status(400).json({'error':'missing parameters'}); //bad request
     }
   
-
-    
-   const token = req.headers['token']; //récupérer le Access token
-
-  
-   
+    const token = req.headers['token']; //récupérer le Access token
     tokenVerifier(token, function(response){   //vérifier le access token auprès du serveur d'authentification      
     
     if (response.statutCode == 200){ //si le serveur d'authentification répond positivement (i.e: Access token valide)
@@ -187,8 +183,6 @@ function TranferClientTH(req, res){
 }
 })
 
-
-return {TranferClientTH};
 }
 /*-----------------------------------------------------------------------------------------------------------------------*/   
 
@@ -205,17 +199,14 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
     async.series({
 
         CompteEmmeteur(callback){ // recuperer le compte emmeteur
-            fcts.GetCompte(iduser,Type1,function(err, Compte1) {
-                
-             if (err){
-                response = {
-                    'statutCode' : 404, // success
-                    'error': 'Compte emmeteur non existant'          
-                }
-                rep(response); 
-             }else{
+                  
+               
+               Compte.findOne({
+                attributes:['Num','Balance'],
+                where:{'IdUser' :id, 
+                'TypeCompte': Type1} })
+            .then((Compte1) => {
                 emmeteur=Compte1.Num;
-                console.log(emmeteur);
                 if (Compte1.Balance<Montant){ // verifier si le montant à virer ne depasse pas la balance du compte
                     console.log('balance insuff');
                     response = {
@@ -226,147 +217,233 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
                                        
                     
                 }
-                else callback(); 
-             }
+                else callback();
+              }).catch(err => {
+                response = {
+                    'statutCode' : 404, // success
+                    'error': 'Compte emmeteur non existant'          
+                }
+                rep(response);
+               
+                
             });
-               
-               
         },
         CompteRecepteur(callback){ // recupere le compte du destinataire 
            
-            fcts.GetCompte(iduser,Type2,function(err,Compte2) {
-                if (err){
-                   response = {
-                       'statutCode' : 404, // success
-                       'error': 'Compte destinataire non existant'          
-                   }
-                   rep(response); 
-                }else{
-                   destinataire=Compte2.Num;
-                  
-                    callback(); 
-                }
-               });
          
+         Compte.findOne({
+          attributes:['Num'],
+          where:{'IdUser' :id, 
+          'TypeCompte': Type2} })
+      .then((Compte2) => {
+          destinataire=Compte2.Num;
+          callback();
+        }).catch(err => {
+            response = {
+                'statutCode' : 404, // success
+                'error': 'Compte destinataire non existant'          
+            }
+            rep(response);
+           
+            
+        });
   },
      Nom(callback){ // recuperer le nom du client
     
-        fcts.GetUser(iduser,function(err,User) {
-            if (err){
-               response = {
-                   'statutCode' : 404, // success
-                   'error': 'Utilisateur non existant'          
-               }
-               rep(response); 
-            }else{
-                Nom=User.Nom+' '+User.Prenom;
-                
+            Client.findOne({
+            attributes:['Nom','Prenom'],
+            where:{'IdUser' :id} })
+          
+                 .then((User) => {
+                 Nom=User.Nom+' '+User.Prenom;;
                 callback(); 
-            }
-           });
-            
+            }).catch(err => {
+                response = {
+                    'statutCode' : 404, // success
+                    'error': 'Utilisateur non existant '          
+                }
+                rep(response);
+                
+            });
              }
              ,
              idcommission(callback){ // recupere l'id de commission generer par le virement 
-             fcts.getNextIdComm(function(idc){
-                  idcom=idc;
-                  callback();
-             })
-                
+                sequelize.query('exec get_next_idcommission').spread((results, metadata) => {
+           
+                    var rows = JSON.parse(JSON.stringify(results[0]));
+                    idcom = parseInt(rows.id);
+                    callback();
+                });
                 
              },
              function (callback){ 
                  // execution des virement
                  if ((Type1=='0')&&(Type2=='2')){ // virement du courant vers devise euro
-                    fcts.VirCourDevis(0,Montant,emmeteur,destinataire,Motif,Nom,Type1,Type2,idcom,function(err,res) {
-                        if (err){
-                            response = {
-                                'statutCode' : 500, // error
-                                'error': 'Virement non effectue'          
-                            }
-                            rep(response); 
-                        }else{
-                            response = {
-                                'statutCode' : 200, //succe
-                                'succe': 'Virement  de votre Compte courant vers le Compte devise euro effectue avec succe'          
-                            }
-                            rep(response);
-                        }
-                       });
-    
+                conversion(Montant,0,function(resultat){ //conversion du montant vers l'euro
+                    sequelize.query('exec Virement_local $montant,$montant2,$emmeteur,$recepteur,$motif,$nom,null,null,$type1,$type2,$id',
+                    {
+                          bind: {
+                                 montant: Montant,
+                                 montant2:resultat,
+                                emmeteur: emmeteur,
+                                recepteur : destinataire,
+                                motif : Motif,
+                                nom: Nom,
+                                type1:Type1,
+                                type2:Type2,
+                                id:idcom
+                                   }
+                            }).then((res) => {
+                                response = {
+                                    'statutCode' : 200, //succe
+                                    'succe': 'Virement  effectue avec succe'          
+                                }
+                                rep(response);
+                                
+                            }).catch(err => {
+                                response = {
+                                    'statutCode' : 500, // error
+                                    'error': 'Virement non effectue'          
+                                }
+                                rep(response);
+                               
+                                
+                            });
+                });
             }
             else {
                if ((Type1=='0')&&(Type2=='3')){  // virement du courant vers devise dollar
-                fcts.VirCourDevis(1,Montant,emmeteur,destinataire,Motif,Nom,Type1,Type2,idcom,function(err,res) {
-                    if (err){
-                        response = {
-                            'statutCode' : 500, // error
-                            'error': 'Virement non effectue'          
-                        }
-                        rep(response); 
-                    }else{
-                        response = {
-                            'statutCode' : 200, //succe
-                            'succe': 'Virement  de votre Compte courant vers le Compte devise dollar effectue avec succe'          
-                        }
-                        rep(response);
-                    }
-                   });
+                conversion(Montant,1,function(resultat){
+                    sequelize.query('exec Virement_local $montant,$montant2,$emmeteur,$recepteur,$motif,$nom,null,null,$type1,$type2,$id',
+                    {
+                          bind: {
+                                 montant: Montant,
+                                 montant2:resultat,
+                                emmeteur: emmeteur,
+                                recepteur : destinataire,
+                                motif : Motif,
+                                nom: Nom,
+                                type1:Type1,
+                                type2:Type2,
+                                id:idcom
+                                   }
+                                }).then((res) => {
+                                    response = {
+                                        'statutCode' : 200, //succe
+                                        'succe': 'Virement  effectue avec succe'          
+                                    }
+                                    rep(response);
+                                    
+                                }).catch(err => {
+                                    response = {
+                                        'statutCode' : 500, // error
+                                        'error': 'Virement non effectue'          
+                                    }
+                                    rep(response);
+                                  
+                                    
+                                });
+                    });
                 }
                else {
                    if ((Type2=='0')&&(Type1=='2')){ // virement du devise euro vers courant
-                    fcts.VirCourDevis(2,Montant,emmeteur,destinataire,Motif,Nom,Type1,Type2,idcom,function(err,res) {
-                        if (err){
-                            response = {
-                                'statutCode' : 500, // error
-                                'error': 'Virement non effectue'          
-                            }
-                            rep(response); 
-                        }else{
-                            response = {
-                                'statutCode' : 200, //succe
-                                'succe': 'Virement  de votre Compte devise euro vers le Compte courant effectue avec succe'          
-                            }
-                            rep(response);
-                        }
-                       });
+                    conversion(Montant,2,function(resultat){
+                        sequelize.query('exec Virement_local $montant,$montant2,$emmeteur,$recepteur,$motif,$nom,null,null,$type1,$type2,$id',
+                        {
+                              bind: {
+                                     montant: Montant,
+                                     montant2:resultat,
+                                    emmeteur: emmeteur,
+                                    recepteur : destinataire,
+                                    motif : Motif,
+                                    nom: Nom,
+                                    type1:Type1,
+                                    type2:Type2,
+                                    id:idcom
+                                       }
+                                    }).then((res) => {
+                                        response = {
+                                            'statutCode' : 200, //succe
+                                            'succe': 'Virement  effectue avec succe'          
+                                        }
+                                        rep(response);
+                                        
+                                    }).catch(err => {
+                                        response = {
+                                            'statutCode' : 500, // error
+                                            'error': 'Virement non effectue'          
+                                        }
+                                        rep(response);
+                                        
+                                        
+                                    });
+                        });
                     }
                    else {
                        if ((Type2=='0')&&(Type1=='3')){ // virement du devise dollar vers courant
-                        fcts.VirCourDevis(3,Montant,emmeteur,destinataire,Motif,Nom,Type1,Type2,idcom,function(err,res) {
-                            if (err){
-                                response = {
-                                    'statutCode' : 500, // error
-                                    'error': 'Virement non effectue'          
-                                }
-                                rep(response); 
-                            }else{
-                                response = {
-                                    'statutCode' : 200, //succe
-                                    'succe': 'Virement  de votre Compte devise dollar vers le Compte courant effectue avec succe'          
-                                }
-                                rep(response);
-                            }
-                           });
+                        conversion(Montant,3,function(resultat){
+                            sequelize.query('exec Virement_local $montant,$montant2,$emmeteur,$recepteur,$motif,$nom,null,null,$type1,$type2,$id',
+                            {
+                                  bind: {
+                                         montant: Montant,
+                                         montant2:resultat,
+                                        emmeteur: emmeteur,
+                                        recepteur : destinataire,
+                                        motif : Motif,
+                                        nom: Nom,
+                                        type1:Type1,
+                                        type2:Type2,
+                                        id:idcom
+                                           }
+                                        }).then((res) => {
+                                            response = {
+                                                'statutCode' : 200, //succe
+                                                'succe': 'Virement  effectue avec succe'          
+                                            }
+                                            rep(response);
+                                          
+                                        }).catch(err => {
+                                            response = {
+                                                'statutCode' : 500, // error
+                                                'error': 'Virement non effectue'          
+                                            }
+                                            rep(response);
+                                            
+                                            
+                                        });
+                            });
                         }
                        else {
                            // virement entre le compte courant et epargne
-                           fcts.VirCourEpar(Montant,emmeteur,destinataire,Motif,Nom,Type1,Type2,idcom,function(err,res) {
-                            if (err){
-                                response = {
-                                    'statutCode' : 500, // error
-                                    'error': 'Virement non effectue'          
-                                }
-                                rep(response); 
-                            }else{
-                                response = {
-                                    'statutCode' : 200, //succe
-                                    'succe': 'Virement  entre  votre Compte courant et votre compte epargne  effectue avec succe'          
-                                }
-                                rep(response);
-                            }
-                           });
-                        
+                        sequelize.query('exec Virement_local $montant,$montant2,$emmeteur,$recepteur,$motif,$nom,null,null,$type1,$type2,$id',
+                    {
+                          bind: {
+                                 montant: Montant,
+                                 montant2:0,
+                                emmeteur: emmeteur,
+                                recepteur : destinataire,
+                                motif : Motif,
+                                nom: Nom,
+                                type1:Type1,
+                                type2:Type2,
+                                id:idcom
+                                   }
+                                }).then((res) => {
+                                    response = {
+                                        'statutCode' : 200, //succe
+                                        'succe': 'Virement  effectue avec succe'          
+                                    }
+                                    rep(response);
+                                    
+                                }).catch(err => {
+                                    response = {
+                                        'statutCode' : 500, // error
+                                        'error': 'Virement non effectue'          
+                                    }
+                                    rep(response);
+                                    
+                                    
+                                });
                     
                 }
                    }
@@ -387,16 +464,53 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 function Listes_virements_non_traites(req, res){
-    sequelize.query('exec VirementNonTraites').spread((results, rows) => {      
-          
-            res.status(200).json(rows);
-    })  
+
+    const token = req.headers['token']; //récupérer le Access token
+    
+    tokenVerifier(token, function(response){   //vérifier le access token auprès du serveur d'authentification      
+    
+    if (response.statutCode == 200){ 
+            sequelize.query('exec VirementNonTraites').spread((results, rows) => {      
+                
+                    res.status(200).json(rows);
+            })  
+}
+})
 }
 
 
+/*-----------------------------------------------------------------------------------------------------------------------*/   
 
-return {TranferClientTH,Virement_local,Listes_virements_non_traites};
+/*--------------------------------Procedure pour valider ou rejeter un virement -----------------------------------------*/
 
+/*-----------------------------------------------------------------------------------------------------------------------*/
+function validerRejeterVirement(req, res){
+
+    var Code=req.body.code;
+    var Statut = req.body.statut;
+    console.log("le code est "+ Code + "le statut "+ Statut);
+
+    const token = req.headers['token']; //récupérer le Access token
+    
+    tokenVerifier(token, function(response){   //vérifier le access token auprès du serveur d'authentification      
+    
+    if (response.statutCode == 200){ 
+            sequelize.query('exec ValRejVir $Cod, $Stat', 
+            {
+                bind: {
+                        Cod: Code, 
+                        Stat: Statut,   //Compte destination                                                                                                                                                                                                                      
+                     }
+                     
+            }).then((response) => {
+                return( res.status(200).json({'succe':'Virement est mit à jour'}));
+            
+             }).catch(err => {return(res.status(401).json({'error': 'Aucun virement mit à jour '}))});                                             
+}
+})
+}
+
+return {TranferClientTH,Virement_local,Listes_virements_non_traites,validerRejeterVirement};
 }
 
 

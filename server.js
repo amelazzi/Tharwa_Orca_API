@@ -60,16 +60,16 @@ const fcts=require('./controleurs/fcts')(Compte,Client,sequelize);
 const tokenController = require('./controleurs/tokenCtrl');
 const usersController = require('./controleurs/usersCtrl')(User,sequelize);
 const clientController = require('./controleurs/clientCtrl')(Client,sequelize,fcts);
+<<<<<<< HEAD
 const accountController = require('./controleurs/accountCtrl')(Client,Compte,compteAccess,sequelize);
 
+=======
+const accountController = require('./controleurs/accountCtrl')(Client,Compte,sequelize);
+>>>>>>> 260b59fbdbd9f0eca9a7948693785a507f7b2fd7
 const VirementController = require('./controleurs/VirementCntrl')(Virement,Compte,User,Client,sequelize,fcts);
-
 const GestionnaireController = require('./controleurs/GestionnaireCntrl')(Virement,User,Banque,sequelize);
 
-
-
 //Routes
-
 const usersRoute = require('./routes/usersRoutes')(express,tokenController,usersController,clientController,accountController);
 server.use('/users',usersRoute);
 
@@ -85,10 +85,7 @@ server.use('/virement',VirementRoute);
 
 const GestionnaireRoute = require('./routes/GestionnaireRoute')(express,GestionnaireController,tokenController);
 server.use('/gestionnaire',GestionnaireRoute);
-//test 
-//const testFct = require('./test/testFct')(fcts);
 
-//mettre le serveur en écoute 
 
 server.listen(8080,function (){
    console.log("Serveur en écoute !");
