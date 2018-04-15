@@ -16,8 +16,8 @@ server.use(bodyParser.json());
 // config of database THARWA
 //den1.mssql6.gear.host
 
-const sequelize = new Sequelize('THARWA', 'cnx', 'orca@2018', {
-  host: 'localhost',
+const sequelize = new Sequelize('THARWA', 'tharwa', 'orca@2018', {
+  host: 'den1.mssql6.gear.host',
   dialect: 'mssql',
   operatorsAliases: false,
 
