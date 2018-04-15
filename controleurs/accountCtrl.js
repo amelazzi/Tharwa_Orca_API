@@ -9,11 +9,11 @@ module.exports = function(Client,Compte,sequelize) {
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
-/*-------------------------------prodédure de création d'un compte bancaire courant---------------------------------*/
+/*-------------------------------------prodédure de création d'un compte bancaire---------------------------------------*/
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
     
-    function CreateCourantAccount(idClient,callback){
+    function CreateBanqueAccount(idClient,codeMonnaie,TypeCompte,callback){
 
         //get current date and time 
         var dt = datetime.create();
@@ -39,12 +39,11 @@ module.exports = function(Client,Compte,sequelize) {
                 middle = '0'+middle;
             }
 
-            var num = 'THW'+ middle + 'DZD';
+            var num = 'THW'+ middle + codeMonnaie;
             var balance = 0;
-            var codeMonnaie = 'DZD';
             var idUser = idClient;
             var etat = 0;
-            var typeCompte = 0;
+            var typeCompte = TypeCompte;
 
             var newCompte = Compte.create({
                 Num : num,
@@ -65,7 +64,7 @@ module.exports = function(Client,Compte,sequelize) {
             })
             .catch(err => {
                 response = {
-                    'statutCode' : 500, // new ressource created
+                    'statutCode' : 500, // internal error
                     'error':'Unable to add account'    
                 }
                 console.error('Unable to add account', err);
@@ -78,6 +77,90 @@ module.exports = function(Client,Compte,sequelize) {
         });
      
     }
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
+
+/*-------------------------------------prodédure de création d'un compte bancaire (épargne ou devise) ---------------------------------------*/
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
+function CreateNewBanqueAccount(idClient,type,callback){
+    Compte.findOne(
+        {
+            attributes:['Num','Etat'],
+            where: {  'IdUser' : idClient, "TypeCompte" : 0 }
+        }
+    ).then(function(CourantAccountFound){
+        if(CourantAccountFound){
+             if(CourantAccountFound.Etat == 1){
+                Compte.findOne(
+                    {
+                        attributes:['Num'],
+                        where: {  'IdUser' : idClient, "TypeCompte" : type }
+                    }
+                    
+                ).then((epargneAccountFound)=>{
+                    if (epargneAccountFound){
+                        response = {
+                            'statutCode' : 409, // conflit
+                            'error':'account already exist'
+                        }
+                        callback(response);
+                    } else { //creation du compte :
+                        if(type == "1"){
+                            CreateBanqueAccount(idClient,'DZD',type,(response)=>{
+                                callback(response);
+                             })
+                        } else if (type == 2){
+                            CreateBanqueAccount(idClient,type,'EUR',type,(response)=>{
+                                callback(response);
+                            })
+                        } else if (type == 3){
+                            CreateBanqueAccount(idClient,type,'USD',type,(response)=>{
+                                callback(response);
+                            })
+                        } else {
+                            response = {
+                                'statutCode' : 400, //bad request
+                                'error':'type de compte non valide'
+                            }
+                            callback(response);
+                        }
+                        
+                    }
+                }).catch((err)=>{
+                    console.log(err);
+                    response = {
+                        'statutCode' : 500, // erreur interne
+                        'error':'Unable to create account'
+                    }
+                    callback(response);
+                });
+             }
+             else {
+                response = {
+                    'statutCode' : 400, // bad request
+                    'error':'Courant account is not activated yet'
+                }
+                callback(response);
+             }
+        }
+        else{
+            response = {
+                'statutCode' : 400, // bad request
+                'error':'Client has no courant account yet '
+            }
+            callback(response);
+        }
+    }).catch(err=>{
+        console.log(err);
+        response = {
+            'statutCode' : 500, // erreur interne
+            'error':'Unable to create account'
+        }
+        callback(response);
+    });
+}
+
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
@@ -211,6 +294,6 @@ function getCompteNonValide(callback){
 
 
 //exports :
-return {CreateCourantAccount,validateAccount,getClientAccounts,getCompteNonValide};
+return {validateAccount,getClientAccounts,getCompteNonValide,CreateNewBanqueAccount};
 
 }
