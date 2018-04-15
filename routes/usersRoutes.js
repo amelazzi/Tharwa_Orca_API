@@ -49,7 +49,7 @@ module.exports = function(express,tokenController,usersController,clientControll
                         clientController.addClient(req,res,(response2)=>{
                             if(response2.statutCode == 201){
                                 // 4- Création du compte banquaire
-                                accountController.CreateBanqueAccount(response2.id,'DZD',0,(response3)=>{
+                                accountController.CreateNewBanqueAccount(response2.id,0,(response3)=>{
                                 if(response3.statutCode == 201){
                                     res.status(response3.statutCode).json({'NumCompte':response3.NumCmpt});
                                 }else {

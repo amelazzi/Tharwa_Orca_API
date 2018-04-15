@@ -52,12 +52,15 @@ const Compte = sequelize.import(__dirname + "/models/Compte");
 const Virement = sequelize.import(__dirname + "/models/Virement");
 const Banque = sequelize.import(__dirname + "/models/Banque");
 
+//Acces aux données
+const compteAccess = require('./Data_access/Compte_access')(Compte,sequelize);
+
 //Controllers
 const fcts=require('./controleurs/fcts')(Compte,Client,sequelize);
 const tokenController = require('./controleurs/tokenCtrl');
 const usersController = require('./controleurs/usersCtrl')(User,sequelize);
 const clientController = require('./controleurs/clientCtrl')(Client,sequelize,fcts);
-const accountController = require('./controleurs/accountCtrl')(Client,Compte,sequelize);
+const accountController = require('./controleurs/accountCtrl')(Client,Compte,compteAccess,sequelize);
 
 const VirementController = require('./controleurs/VirementCntrl')(Virement,Compte,User,Client,sequelize,fcts);
 
