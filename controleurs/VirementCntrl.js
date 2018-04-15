@@ -30,13 +30,10 @@ function TranferClientTH(req, res){
         return res.status(400).json({'error':'missing parameters'}); //bad request
     }
   
-<<<<<<< HEAD
     const token = req.headers['token']; //récupérer le Access token
     console.log("token= "+req.headers.authorization.substring(7));
-=======
     
    const token = req.headers['token']; //récupérer le Access token
->>>>>>> 03ab56c1925ed2ca3425789739bf05d965d119d0
   
    
     tokenVerifier(token, function(response){   //vérifier le access token auprès du serveur d'authentification      
@@ -191,8 +188,6 @@ function TranferClientTH(req, res){
 }
 })
 
-
-return {TranferClientTH};
 }
 /*-----------------------------------------------------------------------------------------------------------------------*/   
 
@@ -474,10 +469,18 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 function Listes_virements_non_traites(req, res){
-    sequelize.query('exec VirementNonTraites').spread((results, rows) => {      
-          
-            res.status(200).json(rows);
-    })  
+
+    const token = req.headers['token']; //récupérer le Access token
+    
+    tokenVerifier(token, function(response){   //vérifier le access token auprès du serveur d'authentification      
+    
+    if (response.statutCode == 200){ 
+            sequelize.query('exec VirementNonTraites').spread((results, rows) => {      
+                
+                    res.status(200).json(rows);
+            })  
+}
+})
 }
 
 return {TranferClientTH,Virement_local,Listes_virements_non_traites};
