@@ -1,9 +1,11 @@
 //imports
 
 var tokenController = require('./tokenCtrl');
+var oxr = require('open-exchange-rates'),
+	fx = require('money');
 
 //exports
-module.exports = function(Client,sequelize) {
+module.exports = function(Client,sequelize,fcts) {
 
 
 /*---------------------------------------------------------------------------------------------------------------------*/
@@ -139,33 +141,84 @@ function getClientInfo (clientId,callback){
 /*-----------------------------------------------------------------------------------------------------------------------*/
 function historique(iduser,callback){
 
-             
+    fcts.historique(iduser,function(err,historique) {
+        if (err){
+            response = {
+                'statutCode' : 500, // success
+                'error': 'erreur dans l\'execution de la requete'          
+            }
+            callback(response) ;
+        }else{
+            response = {
+                'statutCode' : 200, // success
+                'historique':historique      
+            }
+            callback(response);  
+        }
+       });
+      
+}
+function tauxChange(base,callback){
 
-             sequelize.query('exec historique $userid',
-                    {
-                          bind: {
-                                 userid:iduser
-                                }
-                        }).then((historique) => {
-                            response = {
-                                'statutCode' : 200, // success
-                                'historique':JSON.parse(JSON.stringify(historique[0]))        
-                            }
-                            callback(response); 
-                            
-                        
-                        }).catch(err => {
-                            response = {
-                              'statutCode' : 500, // success
-                              'error': 'erreur dans l\'execution de la requete'          
-                          }
-                          callback(response) });
- 
-         
+    oxr.set({ app_id: 'a8a5c2a6302b453f9266c7254b043f6a' });
+    oxr.latest(function() {
+        // Apply exchange rates and base rate to `fx` library object:
+        
+        fx.rates = oxr.rates;
+        fx.base = oxr.base;
+        
+        switch (base)
+        {
+            case 'USD':  { 
+            response = {
+                'statutCode' : 200, // success
+                'rates':[{
+                    'EUR':fx(1).from('USD').to('EUR')   ,
+                    'DZD':fx(1).from('USD').to('DZD')  }  ]
+                 
+            }
+            callback(response); 
+        }
+            break ;
+            case 'EUR': {
+
+                response = {
+                    'statutCode' : 200, // success
+                    'rates':[{
+                        'USD':fx(1).from('EUR').to('USD')   ,
+                        'DZD':fx(1).from('EUR').to('DZD')  }  ]
+                     
+                }
+                callback(response); 
+            }
+            
+            break ;
+            case 'DZD':  {
+                response = {
+                    'statutCode' : 200, // success
+                    'rates':[{
+                        'EUR':fx(1).from('DZD').to('EUR')   ,
+                        'USD':fx(1).from('DZD').to('USD')  }  ]
+                     
+                }
+                
+                callback(response); 
+            }
+           
+            break ;
+            
+            
+    
+    
+        }
+       
+    });
+
+
 }
 
     
     //exporter les services :
-    return {addClient,getClientInfo,historique};
+    return {addClient,getClientInfo,historique,tauxChange};
 
 }
