@@ -145,7 +145,7 @@ function CreateNewBanqueAccount(idClient,type,callback){
 function validateAccount(numAccout,callback){
     Compte.findOne(
       {
-        attributes:['Num','Etat','IdUser'],
+        attributes:['Num','Etat','IdUser','TypeCompte'],
         where: {  'Num' : numAccout }
       }
     ).then(function(account){
@@ -155,7 +155,19 @@ function validateAccount(numAccout,callback){
                 account.update({
                     Etat: 1
                 }).then(function() {
-                    sendgrid.sendEmail(account.IdUser,"Notification THARWA","Votre compte n°"+numAccout+" est désormais valide.");
+                    var type;
+                    switch(account.TypeCompte)
+                    {
+                        case 0: type='courant' 
+                        break;
+                        case 1: type='epargne' 
+                        break;
+                        case 2: type='devise euro' 
+                        break;
+                        case 3: type='devise dollar' 
+                        break; 
+                    }
+                    sendgrid.sendEmail(account.IdUser,"Notification THARWA","Votre compte "+type+" est désormais valide.");
 
                     response = {
                         'statutCode' : 200, // compte validé
@@ -205,7 +217,7 @@ function validateAccount(numAccout,callback){
 function rejectAccount(numAccout,callback){
     Compte.findOne(
       {
-        attributes:['Num','Etat','IdUser'],
+        attributes:['Num','Etat','IdUser','TypeCompte'],
         where: {  'Num' : numAccout }
       }
     ).then(function(account){
@@ -215,7 +227,19 @@ function rejectAccount(numAccout,callback){
                 account.update({
                     Etat: 2
                 }).then(function() {
-                    sendgrid.sendEmail(account.IdUser,"Notification THARWA","Votre compte n°"+numAccout+" est désormais valide.");
+                    var type;
+                    switch(account.TypeCompte)
+                    {
+                        case 0: type='courant' 
+                        break;
+                        case 1: type='epargne' 
+                        break;
+                        case 2: type='devise euro' 
+                        break;
+                        case 3: type='devise dollar' 
+                        break; 
+                    }
+                    sendgrid.sendEmail(account.IdUser,"Notification THARWA","Votre compte "+type+" a été  rejeté.");
 
                     response = {
                         'statutCode' : 200, // compte validé

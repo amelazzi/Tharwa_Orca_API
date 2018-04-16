@@ -103,7 +103,7 @@ module.exports = function(Client,User,Compte,sequelize,fcts) {
                                }).then((banquiers) => { 
             
                                 for(banquer in banquiers ){
-                                    sendgrid.sendEmail(banquiers[banquer].userId,"Notification THARWA","Un nouveau compte banquire tharwa en attente de validation. Numéro = "+Num);
+                                    sendgrid.sendEmail(banquiers[banquer].userId,"Notification THARWA","Un nouveau compte banquaire tharwa en attente de validation. ");
                                      
                                      
                                 }
