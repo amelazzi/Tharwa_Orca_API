@@ -16,8 +16,8 @@ server.use(bodyParser.json());
 // config of database THARWA
 //den1.mssql6.gear.host
 
-const sequelize = new Sequelize('THARWA', 'tharwa', 'orca@2018', {
-  host: 'den1.mssql6.gear.host',
+const sequelize = new Sequelize('THARWA', 'cnx', 'orca@2018', {
+  host: 'localhost',
   dialect: 'mssql',
   operatorsAliases: false,
 
@@ -84,8 +84,8 @@ const GestionnaireRoute = require('./routes/GestionnaireRoute')(express,Gestionn
 server.use('/gestionnaire',GestionnaireRoute);
 
 //test 
-//const testFct = require('./test/testFct')(fcts);
-//const accountFct = require('./test/testAccount')(compteAccess);
+const testFct = require('./test/testFct')(fcts);
+accountFct = require('./test/testAccount')(compteAccess);
 
 server.listen(8080,function (){
    console.log("Serveur en écoute !");

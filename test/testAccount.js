@@ -7,29 +7,9 @@ describe('créer un nouveau compte banquaire ', function () {
         it('should return true (new bank account created)', function () {
           
           // 1. ARRANGE
-          var idClient = 'em_meguellati@esi.dz';
-          var codeMonnaie = 'EUR';
-          var TypeCompte = 2;
-      
-          // 2. ACT
-          compteAccess.CreateBanqueAccount(idClient,codeMonnaie,TypeCompte,function(isCreated) {
-                      
-              // 3. ASSERT
-               expect(isCreated).to.be.equal(true);
-             });
-      
-          
-      
-        });
- });
-
-describe('créer un  compte banquaire existant', function () {
-        it('should return true (new bank account created)', function () {
-          
-          // 1. ARRANGE
-          var idClient = 'em_meguelleti@esi.dz';
-          var codeMonnaie = 'DZD';
-          var TypeCompte = 0;
+          var idClient = 'testUnitaire1@mailinator.com';
+          var codeMonnaie = 'USD';
+          var TypeCompte = 3;
       
           // 2. ACT
           compteAccess.CreateBanqueAccount(idClient,codeMonnaie,TypeCompte,function(isCreated) {
@@ -41,7 +21,9 @@ describe('créer un  compte banquaire existant', function () {
           
       
         });
-});
+ });
+
+
 
 describe('construire le prochaine numéro de compte', function () {
     it('should return a valide numAccount', function () {

@@ -6,7 +6,7 @@ let server = require('../server');
 let should = chai.should();
 chai.use(chaiHttp);
 
-describe('Virements Externe', () => {
+/*describe('Virements Externe', () => {
  
   describe('/GET Virement externe  ', () => {
       it('it should GET all the externe virements', (done) => {
@@ -56,4 +56,4 @@ describe('/Post Virement externe ', () => {
   });
 });
 
-});
+});*/
