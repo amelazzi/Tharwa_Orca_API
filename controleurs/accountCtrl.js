@@ -45,6 +45,7 @@ function CreateNewBanqueAccount(idClient,type,callback){
                                     if (newAccount){
                                        response = {
                                            'statutCode' : 201, // created    
+                                           'compte': newAccount
                                        }
                                        callback(response);
                                     } else {

@@ -190,6 +190,10 @@ function TranferClientTH(req, res){
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
+    console.log("type1",Type1)
+    console.log("type2",Type2)
+    console.log("montant",Montant)
+    console.log("motif",Motif)
    
     var  emmeteur ={};
     var destinataire ={};

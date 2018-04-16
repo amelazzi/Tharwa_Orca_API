@@ -41,7 +41,7 @@ describe('/Post Virement local ', () => {
         .post('/virement/local')
         .set({'token':'Vk5sdkIaq5fAnhepbrXOndqFtRscTXrVQWPUKX5bjAKsZAI4UJSpEKItNEoBJdsgECrVCHTCOohIozlsuugwnD3wKnRtYOtnZBJ14NGwZH4Ya6TnOpfSWbo5Bxvh4ybjI1385jHklEDfsqoSwLstQv792W7E6ENA3klObi4QrMExjbEPOJUbmUX5j6uwT36MM87zNIjXqOW6c3GKaXGANvQ9HOCaX2eNaDQtySq5iJv5dvUJgnQodrN7GYXVpxq'})
         .send({
-          'montant': '10',
+          'montant': '19',
           'type1': '0',
           'type2': '1',
           'motif':'virement'
