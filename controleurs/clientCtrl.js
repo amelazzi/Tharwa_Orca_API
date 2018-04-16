@@ -4,10 +4,11 @@ var tokenController = require('./tokenCtrl');
 var oxr = require('open-exchange-rates'),
     fx = require('money');
 const datetime = require('node-datetime');
-var crypto = require('crypto');
+const crypto = require('crypto');
+const sendgrid = require('../Utils/sendgrid')
 
 //exports
-module.exports = function(Client,sequelize,fcts) {
+module.exports = function(Client,User,Compte,sequelize,fcts) {
 
 
 /*---------------------------------------------------------------------------------------------------------------------*/
@@ -44,21 +45,21 @@ module.exports = function(Client,sequelize,fcts) {
                 'error'  : 'missing parameters'           
                }
             callback(response);
-        } else {
- 
-           
-        }
+        } 
         
+        else {
+         
         const value = sequelize.escape(id);
-        var idd = sequelize.literal(`IdUser = CONVERT(varchar, ${value})`) 
-        Client.findOne({
-            attributes:['IdUser'],
-            where: {  idd }
-            
-        })
-        .then(function(clientFound){ 
+        var idd = sequelize.literal(`userId = CONVERT(varchar, ${value})`)     
+        Compte.findOne(
+            {
+                attributes:['Num','Etat'],
+                where: {  'IdUser' : id, "TypeCompte" : 0 }
+            }
+        ).then(function(compteFound){ 
 
-            if(clientFound){ //si'il existe :
+            if(compteFound){ //si'il existe :
+                console.log("exist")
                 response = {
                     'statutCode' : 409, // conflit
                     'error':'Client already exists'         
@@ -77,7 +78,7 @@ module.exports = function(Client,sequelize,fcts) {
 
                     const passwordHash = crypto.createHmac('sha256', password).digest('hex');
 
-                    sequelize.query('exec inscription_client $Id,$password,$username,$numTel,$Nom,$Prenom,$Adresse,$Fonction,$Photo,$Type,$num,$Date',
+                    sequelize.query('exec add_client $Id,$password,$username,$numTel,$Nom,$Prenom,$Adresse,$Fonction,$Photo,$Type,$num,$Date',
                     {
                           bind: {
                                  Id : id,
@@ -94,11 +95,28 @@ module.exports = function(Client,sequelize,fcts) {
                                  Date: dateCreation
                                 }
                     }).then((res) => {
+
+                               //notifier les banquiers
+                               User.findAll({
+                                attributes:['userId'],
+                                where: { 'type' : 1}
+                               }).then((banquiers) => { 
+            
+                                for(banquer in banquiers ){
+                                    sendgrid.sendEmail(banquiers[banquer].userId,"Notification THARWA","Un nouveau compte banquire tharwa en attente de validation. Numéro = "+Num);
+                                     
+                                     
+                                }
                                 response = {
                                     'statutCode' : 201, //created
                                     'success': 'Client ajouté'          
                                 }
                                 callback(response);
+                              
+                              }).catch((err)=>{
+                                   console.log(err)
+                              }); 
+                                
                                 
                     }).catch(err => {
 
@@ -117,12 +135,14 @@ module.exports = function(Client,sequelize,fcts) {
         })
         .catch(function(err){
                 response = {
-                    'statutCode' : 500, // new ressource created
-                    'error':'Unable to add client'       
+                    'statutCode' : 500, // error
+                    'error':'cant to add client'       
                 }
                 callback(response);
                 console.error('Unable to add client', err);
         });
+
+      }
 
     }
 

@@ -59,7 +59,7 @@ const compteAccess = require('./Data_access/Compte_access')(Compte,sequelize);
 const fcts=require('./controleurs/fcts')(Compte,Client,sequelize);
 const tokenController = require('./controleurs/tokenCtrl');
 const usersController = require('./controleurs/usersCtrl')(User,sequelize);
-const clientController = require('./controleurs/clientCtrl')(Client,sequelize,fcts);
+const clientController = require('./controleurs/clientCtrl')(Client,User,Compte,sequelize,fcts);
 
 const accountController = require('./controleurs/accountCtrl')(Client,Compte,compteAccess,sequelize);
 

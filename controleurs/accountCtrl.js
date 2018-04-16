@@ -1,6 +1,7 @@
 //imports
 
 var tokenController = require('./tokenCtrl');
+const sendgrid = require('../Utils/sendgrid')
 
 
 //exports
@@ -144,7 +145,7 @@ function CreateNewBanqueAccount(idClient,type,callback){
 function validateAccount(numAccout,callback){
     Compte.findOne(
       {
-        attributes:['Num','Etat'],
+        attributes:['Num','Etat','IdUser'],
         where: {  'Num' : numAccout }
       }
     ).then(function(account){
@@ -154,6 +155,8 @@ function validateAccount(numAccout,callback){
                 account.update({
                     Etat: 1
                 }).then(function() {
+                    sendgrid.sendEmail(account.IdUser,"Notification THARWA","Votre compte n°"+numAccout+" est désormais valide.");
+
                     response = {
                         'statutCode' : 200, // compte validé
                     }
