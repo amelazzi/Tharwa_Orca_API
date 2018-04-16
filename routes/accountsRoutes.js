@@ -66,6 +66,41 @@ router.put('/validate',(req,res) =>{
 
 /*-----------------------------------------------------------------------------------------------------------------------*/   
 
+/*----------------------------------------Service de rejection d'un compte banquire------------------------------------*/
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
+router.put('/reject',(req,res) =>{
+
+    //récupérer le Access token du banquier qui veut valider le compte banquaire
+    const token = req.headers['token']; 
+    tokenController(token, function(OauthResponse){
+        if (OauthResponse.statutCode == 200){
+            numCmpt = req.body.num;
+            if(numCmpt == null){
+                res.status(400).json({'error' : 'missing account number '});
+            }else {
+               
+                accountController.rejectAccount(numCmpt,(response)=>{
+                    if(response.statutCode == 200){
+                        res.status(200).json({'success' : 'account rejected'});
+                    } else {
+                        res.status(response.statutCode).json({'error' : response.error});
+                    }
+                    
+                 });
+            }
+        
+        }else {
+            
+            res.status(OauthResponse.statutCode).json({'error': OauthResponse.error});
+        }
+    });
+
+    
+});
+
+/*-----------------------------------------------------------------------------------------------------------------------*/   
+
 /*----------------------------------------Service pour extraire les comptes non validés ------------------------------------*/
 
 /*-----------------------------------------------------------------------------------------------------------------------*/

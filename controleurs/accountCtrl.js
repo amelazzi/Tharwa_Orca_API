@@ -199,6 +199,65 @@ function validateAccount(numAccout,callback){
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
+/*-------------------------------prodédure de réjecction d'un compte banquire ---------------------------------*/
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
+function rejectAccount(numAccout,callback){
+    Compte.findOne(
+      {
+        attributes:['Num','Etat','IdUser'],
+        where: {  'Num' : numAccout }
+      }
+    ).then(function(account){
+    
+        if (account){
+            if(account.Etat == 0){
+                account.update({
+                    Etat: 2
+                }).then(function() {
+                    sendgrid.sendEmail(account.IdUser,"Notification THARWA","Votre compte n°"+numAccout+" est désormais valide.");
+
+                    response = {
+                        'statutCode' : 200, // compte validé
+                    }
+                    callback(response);
+                    
+                }).catch(err => {
+
+                    console.log(err);
+                    response = {
+                        'statutCode' : 500, // erreur interne
+                        'error':'Unable to reject account'
+                    }
+                    callback(response);
+                });
+            } else  {
+                response = {
+                    'statutCode' : 400, //bad request
+                    'error'  : 'account cant be rejeted '           
+                   }
+                callback(response);
+            } 
+        }
+        else{
+            response = {
+                'statutCode' : 404, //not found
+                'error'  : 'account not found'           
+               }
+            callback(response);
+        }
+
+    }).catch((err)=>{
+        console.log(err);
+        response = {
+            'statutCode' : 500, // erreur interne
+            'error':'Unable to validate account'
+        }
+        callback(response);
+    });
+}
+/*-----------------------------------------------------------------------------------------------------------------------*/
+
 /*-------------------------------récupérer les informations de tous les comptes d'un client ---------------------------*/
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
@@ -271,6 +330,6 @@ function getCompteNonValide(callback){
 
 
 //exports :
-return {CreateNewBanqueAccount,validateAccount,getClientAccounts,getCompteNonValide};
+return {CreateNewBanqueAccount,validateAccount,getClientAccounts,getCompteNonValide,rejectAccount};
 
 }
