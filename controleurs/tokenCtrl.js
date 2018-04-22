@@ -21,7 +21,7 @@ module.exports = function (token, callback){
        
     };
 
-    request(options, function (err, res,body){
+    request(options, function (err, res,body){ 
         
         if(err){ //en cas d'ereur interne du serveur d'authentification
             console.log(err);

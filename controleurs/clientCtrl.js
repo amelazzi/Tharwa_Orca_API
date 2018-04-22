@@ -2,10 +2,13 @@
 
 var tokenController = require('./tokenCtrl');
 var oxr = require('open-exchange-rates'),
-	fx = require('money');
+    fx = require('money');
+const datetime = require('node-datetime');
+const crypto = require('crypto');
+const sendgrid = require('../Utils/sendgrid')
 
 //exports
-module.exports = function(Client,sequelize,fcts) {
+module.exports = function(Client,User,Compte,sequelize,fcts) {
 
 
 /*---------------------------------------------------------------------------------------------------------------------*/
@@ -19,6 +22,9 @@ module.exports = function(Client,sequelize,fcts) {
 
         //récupérer les paramètres de l'utilisateur depuis le body de la requete
         var id = req.body.userId;
+        var userName = req.body.UserName;
+        var password = req.body.Pwd;
+        var tele = req.body.Tel
         var type = parseInt(req.body.type);
         var nom = req.body.Nom;
         var prenom = req.body.Prenom;
@@ -26,24 +32,34 @@ module.exports = function(Client,sequelize,fcts) {
         var fonction = req.body.Fonction;
         var imagePath =  req.file.path;
 
-        if(id == null || type == null || nom == null || prenom == null || adresse == null || fonction == null || imagePath == null){
+        var dt = datetime.create();
+        var formatted = dt.format('Y-m-dTH:M:S');
+        var dateCreation = formatted ;
+
+               
+        
+
+        if(id == null ||tele== null || userName == null || password == null || type == null || nom == null || prenom == null || adresse == null || fonction == null || imagePath == null){
             response = {
                 'statutCode' : 400, //bad request
                 'error'  : 'missing parameters'           
                }
             callback(response);
-        }
-
+        } 
+        
+        else {
+         
         const value = sequelize.escape(id);
-        var idd = sequelize.literal(`IdUser = CONVERT(varchar, ${value})`) 
-        Client.findOne({
-            attributes:['IdUser'],
-            where: {  idd }
-            
-        })
-        .then(function(clientFound){ 
+        var idd = sequelize.literal(`userId = CONVERT(varchar, ${value})`)     
+        Compte.findOne(
+            {
+                attributes:['Num','Etat'],
+                where: {  'IdUser' : id, "TypeCompte" : 0 }
+            }
+        ).then(function(compteFound){ 
 
-            if(clientFound){ //si'il existe :
+            if(compteFound){ //si'il existe :
+                console.log("exist")
                 response = {
                     'statutCode' : 409, // conflit
                     'error':'Client already exists'         
@@ -52,42 +68,81 @@ module.exports = function(Client,sequelize,fcts) {
                 
             }
             else{ 
-                  //créer le nouveau client :
-                   var newClient = Client.create({
-                       IdUser : id,
-                       Nom : nom,
-                       Prenom : prenom,
-                       Adresse : adresse,
-                       Fonction : fonction,
-                       Photo :  imagePath,
-                       Type : type
-  
-                   }).then(function(newClient){
-                        response = {
-                            'statutCode' : 201, // new ressource created
-                            'id': newClient.IdUser        
-                        }
-                        callback(response);
-                   })
-                   .catch(err => {
-                        response = {
-                            'statutCode' : 500, // new ressource created
-                            'error':'Unable to add client'       
-                        }
-                        callback(response);
-                        console.error('Unable to add client', err);
+                //former le prochain numero séquentiel du compte banquire
+                sequelize.query('exec GetNextId').spread((results, metadata) => {
+            
+                    var rows = JSON.parse(JSON.stringify(results[0]));
+                    var numSeq = rows.id;
+                    var middle = numSeq.toString();
+                    var Num = makeNumAccount (middle,'DZD');
+
+                    const passwordHash = crypto.createHmac('sha256', password).digest('hex');
+
+                    sequelize.query('exec add_client $Id,$password,$username,$numTel,$Nom,$Prenom,$Adresse,$Fonction,$Photo,$Type,$num,$Date',
+                    {
+                          bind: {
+                                 Id : id,
+                                 password:passwordHash,
+                                 username: userName,
+                                 numTel : tele,
+                                 Nom : nom,
+                                 Prenom: prenom,
+                                 Adresse:adresse,
+                                 Fonction:fonction,
+                                 Photo:imagePath,
+                                 Type : type ,
+                                 num : Num,
+                                 Date: dateCreation
+                                }
+                    }).then((res) => {
+
+                               //notifier les banquiers
+                               User.findAll({
+                                attributes:['userId'],
+                                where: { 'type' : 1}
+                               }).then((banquiers) => { 
+            
+                                for(banquer in banquiers ){
+                                    sendgrid.sendEmail(banquiers[banquer].userId,"Notification THARWA","Un nouveau compte bancaire Tharwa en attente de validation. ");
+                                     
+                                     
+                                }
+                                response = {
+                                    'statutCode' : 201, //created
+                                    'success': 'Client ajouté'          
+                                }
+                                callback(response);
+                              
+                              }).catch((err)=>{
+                                   console.log(err)
+                              }); 
+                                
+                                
+                    }).catch(err => {
+
+                                console.error(err)
+                                response = {
+                                    'statutCode' : 500, // error
+                                    'error': 'Unable to add client'          
+                                }
+                                callback(response);
+                               
+                                
                     });
-           
-           }
+                });
+
+            }
         })
         .catch(function(err){
                 response = {
-                    'statutCode' : 500, // new ressource created
-                    'error':'Unable to add client'       
+                    'statutCode' : 500, // error
+                    'error':'cant to add client'       
                 }
                 callback(response);
-                console.error('Unable to add user', err);
+                console.error('Unable to add client', err);
         });
+
+      }
 
     }
 
@@ -217,6 +272,23 @@ function tauxChange(base,callback){
 
 }
 
+function makeNumAccount (middle,codeMonnaie){
+
+    if (middle.length == 1){
+        middle = '00000'+middle;
+    }else if (middle.length == 2){
+        middle = '0000'+middle;
+    }else if (middle.length == 3){
+        middle = '000'+middle;
+    }else if (middle.length == 4){
+        middle = '00'+middle;
+    }else if (middle.length == 5){
+        middle = '0'+middle;
+    }
+
+    var num = 'THW'+ middle + codeMonnaie;
+    return num
+  }
     
     //exporter les services :
     return {addClient,getClientInfo,historique,tauxChange};

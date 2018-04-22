@@ -22,7 +22,7 @@ const sequelize = new Sequelize('THARWA', 'cnx', 'orca@2018', {
   operatorsAliases: false,
 
   pool: {
-    max: 5,
+    max: 5, 
     min: 0,
     acquire: 30000,
     idle: 10000
@@ -52,12 +52,17 @@ const Compte = sequelize.import(__dirname + "/models/Compte");
 const Virement = sequelize.import(__dirname + "/models/Virement");
 const Banque = sequelize.import(__dirname + "/models/Banque");
 
+//Acces aux données
+const compteAccess = require('./Data_access/Compte_access')(Compte,sequelize);
+
 //Controllers
 const fcts=require('./controleurs/fcts')(Compte,Client,sequelize);
 const tokenController = require('./controleurs/tokenCtrl');
 const usersController = require('./controleurs/usersCtrl')(User,sequelize);
-const clientController = require('./controleurs/clientCtrl')(Client,sequelize,fcts);
-const accountController = require('./controleurs/accountCtrl')(Client,Compte,sequelize);
+const clientController = require('./controleurs/clientCtrl')(Client,User,Compte,sequelize,fcts);
+
+const accountController = require('./controleurs/accountCtrl')(Client,Compte,compteAccess,sequelize);
+
 const VirementController = require('./controleurs/VirementCntrl')(Virement,Compte,User,Client,sequelize,fcts);
 const GestionnaireController = require('./controleurs/GestionnaireCntrl')(Virement,User,Banque,sequelize);
 
@@ -78,6 +83,9 @@ server.use('/virement',VirementRoute);
 const GestionnaireRoute = require('./routes/GestionnaireRoute')(express,GestionnaireController,tokenController);
 server.use('/gestionnaire',GestionnaireRoute);
 
+//test 
+//const testFct = require('./test/testFct')(fcts);
+//accountFct = require('./test/testAccount')(compteAccess);
 
 server.listen(8080,function (){
    console.log("Serveur en écoute !");
