@@ -29,8 +29,8 @@ function TranferClientTH(req, res){
     if(montant == null || dest == null ||Motif==null){
         return res.status(400).json({'error':'missing parameters'}); //bad request
     }
-  
-    const token = req.headers['token']; //récupérer le Access token
+   // const token="EWVkyX9tlGFag9uqkMuW7JWiz9UGRfWnHtPQd3EL7cbfopJTKt15xEZc5ul0VkPyycMx3JGgDLT988tQNp1LwkBS0LuZpmSyWcqQpdsYU6W05OcfITrHHoqVLpIxeRWWOcYkcKYcHKdfI7uo0DtAEtrV5Z16Zn8BDf2Qfbxpog7ptRdJWk3tVZqPveYTYYSXzDQdRyb6j2kN9FPXN00wl12vqX9JewEDk7ZXiNCGxffKqhc4ytjsUHUa0TI944p";
+   const token = req.headers['token']; //récupérer le Access token
     tokenVerifier(token, function(response){   //vérifier le access token auprès du serveur d'authentification      
     
     if (response.statutCode == 200){ //si le serveur d'authentification répond positivement (i.e: Access token valide)
@@ -505,7 +505,7 @@ function validerRejeterVirement(req, res){
             }).then((response) => {
                 return( res.status(200).json({'succe':'Virement est mit à jour'}));
             
-             }).catch(err => {return(res.status(401).json({'error': 'Aucun virement mit à jour '}))});                                             
+             }).catch(err => {return(res.status(500).json({'error': 'Aucun virement mit à jour'}))});                                             
 }
 })
 }
