@@ -289,7 +289,7 @@ function makeNumAccount (middle,codeMonnaie){
     var num = 'THW'+ middle + codeMonnaie;
     return num
   }
-    
+  
     //exporter les services :
     return {addClient,getClientInfo,historique,tauxChange};
 
