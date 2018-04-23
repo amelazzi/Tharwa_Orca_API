@@ -293,7 +293,7 @@ function getClientAccounts(ClientId,callback){
         Compte.belongsTo(Client, {foreignKey: 'IdUser'})
         Compte.findAll({
 
-            attributes:['Num','Etat','Balance'],
+            attributes:['Num','Etat','Balance','TypeCompte'],
             where: { 'IdUser' : ClientId} 
             
         })
