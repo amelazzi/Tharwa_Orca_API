@@ -55,7 +55,7 @@ oxr.latest(function() {
     
     switch (par)
     {
-        case 0:   callback( fx(montant).from('DZD').to('EUR')); // courant vers devise euro
+        case 0:    callback( fx(montant).from('DZD').to('EUR')); // courant vers devise euro
         break ;
         case 1: callback(fx(montant).from('DZD').to('USD')) // courant vers devise dollar
         

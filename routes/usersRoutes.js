@@ -38,34 +38,18 @@ module.exports = function(express,tokenController,usersController,clientControll
     router.post('/ClientInscription',(req,res) =>{
 
         // 1- Uploader l'image du client
-        //console.log(req.body.UserName)
         usersController.FileUpload(req,res,'./uploads',(response)=>{
             
             if(response.statutCode == 200){
-                // 2- Création du compte utilisateur pour le client
-                usersController.createUserAccount(req, res,2,(response1)=>{
-                    if(response1.statutCode==201){
-                        // 3- Ajout du client à la table Client dans la BDD
-                        clientController.addClient(req,res,(response2)=>{
-                            if(response2.statutCode == 201){
-                                // 4- Création du compte banquaire
-                                accountController.CreateCourantAccount(response2.id,(response3)=>{
-                                if(response3.statutCode == 201){
-                                    res.status(response3.statutCode).json({'NumCompte':response3.NumCmpt});
-                                }else {
-                                    res.status(response3.statutCode).json({'error':response3.error});
-                                }
-                                });
-                            }
-                            else{
-                                res.status(response2.statutCode).json({'error':response2.error}); 
-                            }
-                        });
+                //2- Insciption du client ( creation Usre + Client + Compte courant )
+                clientController.addClient(req,res,(response2)=>{
+                    if (response2.statutCode == 201){
+                        res.status(response2.statutCode).json({'success':response2.success});
                     }
-                    else{
-                        res.status(response1.statutCode).json({'error':response1.error});
+                    else {
+                        res.status(response2.statutCode).json({'error':response2.error});
                     }
-                });
+                }) 
             }else{
               res.status(response.statutCode).json({'error':response.error});
             }
