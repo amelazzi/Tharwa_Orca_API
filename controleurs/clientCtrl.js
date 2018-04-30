@@ -103,7 +103,7 @@ module.exports = function(Client,User,Compte,sequelize,fcts) {
                                }).then((banquiers) => { 
             
                                 for(banquer in banquiers ){
-                                    sendgrid.sendEmail(banquiers[banquer].userId,"Notification THARWA","Un nouveau compte banquaire tharwa en attente de validation. ");
+                                    sendgrid.sendEmail(banquiers[banquer].userId,"Notification THARWA","Un nouveau compte bancaire Tharwa en attente de validation. ");
                                      
                                      
                                 }
@@ -289,7 +289,7 @@ function makeNumAccount (middle,codeMonnaie){
     var num = 'THW'+ middle + codeMonnaie;
     return num
   }
-    
+  
     //exporter les services :
     return {addClient,getClientInfo,historique,tauxChange};
 

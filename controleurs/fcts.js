@@ -55,7 +55,7 @@ oxr.latest(function() {
     
     switch (par)
     {
-        case 0:   callback( fx(montant).from('DZD').to('EUR')); // courant vers devise euro
+        case 0:    callback( fx(montant).from('DZD').to('EUR')); // courant vers devise euro
         break ;
         case 1: callback(fx(montant).from('DZD').to('USD')) // courant vers devise dollar
         
@@ -123,5 +123,23 @@ function VirCourEpar(Montant,emmeteur,destinataire,Motif,Nom,Type1,Type2,idcom,c
                 
 
 }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////Ajout de commissions mensuelles ///////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////::
+var schedule = require('node-schedule');
+
+
+  var schedule = require('node-schedule');
+  var rule2 = new schedule.RecurrenceRule();
+  rule2.month = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  rule2.hour = 0;
+  rule2.minute = 0;
+  
+  schedule.scheduleJob(rule2, function(){
+    console.log(new Date(), 'chaque mois à  00:00 AM  on extrait les commissions mensuelles  .');
+
+
+});
+
 return {GetCompte,GetUser,getNextIdComm,VirCourDevis,VirCourEpar,historique}
 }

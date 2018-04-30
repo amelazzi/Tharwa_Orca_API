@@ -45,6 +45,7 @@ function CreateNewBanqueAccount(idClient,type,callback){
                                     if (newAccount){
                                        response = {
                                            'statutCode' : 201, // created    
+                                           'compte': newAccount
                                        }
                                        callback(response);
                                     } else {
@@ -292,7 +293,7 @@ function getClientAccounts(ClientId,callback){
         Compte.belongsTo(Client, {foreignKey: 'IdUser'})
         Compte.findAll({
 
-            attributes:['Num','Etat','Balance'],
+            attributes:['Num','Etat','Balance','TypeCompte'],
             where: { 'IdUser' : ClientId} 
             
         })

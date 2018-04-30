@@ -4,7 +4,7 @@ var describe = mocha.describe
 //const { describe, it, before, after } = require('mocha');
 module.exports = function(fcts){
   
-/*describe('Compte ', function () {
+describe('Compte ', function () {
   it('should return a num Compte ', function () {
     
     // 1. ARRANGE
@@ -46,7 +46,7 @@ describe('Nom ', function () {
 describe('Id commission ', function () {
   it('should return  the next id commission  ', function () {
     // 1. ARRANGE
-    var id = 31;
+    var id = 39;
     // 2. ACT
     fcts.getNextIdComm(function(idcom) {
                 
@@ -54,5 +54,5 @@ describe('Id commission ', function () {
          expect(idcom).to.be.equal(id);
        });
   });
-});*/
+});
 }

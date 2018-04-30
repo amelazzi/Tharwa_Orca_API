@@ -71,13 +71,13 @@ chai.use(chaiHttp);
 }); */
 
 
-/*describe('valider un compte ', () => {
+describe('valider un compte ', () => {
     it('it should validate an account with state 0 ', (done) => {
       chai.request(server)
           .put('/accounts/validate')
           .set({'token':'Vk5sdkIaq5fAnhepbrXOndqFtRscTXrVQWPUKX5bjAKsZAI4UJSpEKItNEoBJdsgECrVCHTCOohIozlsuugwnD3wKnRtYOtnZBJ14NGwZH4Ya6TnOpfSWbo5Bxvh4ybjI1385jHklEDfsqoSwLstQv792W7E6ENA3klObi4QrMExjbEPOJUbmUX5j6uwT36MM87zNIjXqOW6c3GKaXGANvQ9HOCaX2eNaDQtySq5iJv5dvUJgnQodrN7GYXVpxq'})
           .send({
-            'num' : 'THW000017DZD'
+            'num' : 'THW000009DZD'
           })
           .end((err, res) => {
               res.should.have.status(200);
@@ -88,13 +88,13 @@ chai.use(chaiHttp);
     });
   });
 
-  describe('valider un compte ', () => {
+  describe('Rejeter un compte ', () => {
     it('it should reject an account with state 0 ', (done) => {
       chai.request(server)
           .put('/accounts/reject')
           .set({'token':'Vk5sdkIaq5fAnhepbrXOndqFtRscTXrVQWPUKX5bjAKsZAI4UJSpEKItNEoBJdsgECrVCHTCOohIozlsuugwnD3wKnRtYOtnZBJ14NGwZH4Ya6TnOpfSWbo5Bxvh4ybjI1385jHklEDfsqoSwLstQv792W7E6ENA3klObi4QrMExjbEPOJUbmUX5j6uwT36MM87zNIjXqOW6c3GKaXGANvQ9HOCaX2eNaDQtySq5iJv5dvUJgnQodrN7GYXVpxq'})
           .send({
-            'num' : 'THW000013DZD'
+            'num' : 'THW000008DZD'
           })
           .end((err, res) => {
               res.should.have.status(200);
@@ -103,21 +103,6 @@ chai.use(chaiHttp);
             done();
           });
     });
-  }); */
+  }); 
   
 
-describe('créer  un nouveau compte bancaire (epargne/devise)', () => {
-    it('it should create a new bank account and return with satut 201 ', (done) => {
-      chai.request(server)
-          .post('/accounts/new')
-          .set({'token':'Vk5sdkIaq5fAnhepbrXOndqFtRscTXrVQWPUKX5bjAKsZAI4UJSpEKItNEoBJdsgECrVCHTCOohIozlsuugwnD3wKnRtYOtnZBJ14NGwZH4Ya6TnOpfSWbo5Bxvh4ybjI1385jHklEDfsqoSwLstQv792W7E6ENA3klObi4QrMExjbEPOJUbmUX5j6uwT36MM87zNIjXqOW6c3GKaXGANvQ9HOCaX2eNaDQtySq5iJv5dvUJgnQodrN7GYXVpxq'})
-          .send({
-            'Type' : '1'
-          })
-          .end((err, res) => {
-              res.should.have.status(201);
-             
-            done();
-          });
-    });
-  }); 

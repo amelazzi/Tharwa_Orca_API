@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 var mocha = require('mocha')
 var describe = mocha.describe
 
-module.exports = function(compteAccess){
+/*module.exports = function(compteAccess){
 describe('créer un nouveau compte banquaire ', function () {
         it('should return true (new bank account created)', function () {
           
@@ -42,4 +42,4 @@ describe('construire le prochaine numéro de compte', function () {
     });
 });
     
-}
+}*/
