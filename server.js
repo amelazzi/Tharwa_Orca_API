@@ -86,7 +86,8 @@ server.use('/gestionnaire',GestionnaireRoute);
 
 //test 
 //const testFct = require('./test/testFct')(fcts);
-//accountFct = require('./test/testAccount')(compteAccess);
+//cont accountFct = require('./test/testAccount')(compteAccess);
+//const clientTest  = require('./test/testClient')(clientController);
 
 server.listen(8080,function (){
    console.log("Serveur en écoute !");

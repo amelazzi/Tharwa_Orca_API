@@ -34,6 +34,7 @@
     "open-exchange-rates": "^0.3.0",
     "request": "^2.83.0",
     "sequelize": "^4.35.0",
+    "socket.io": "^2.1.0",
     "tedious": "^2.3.1"
   }
 }
