@@ -380,11 +380,20 @@ function Listes_virements_non_traites(req, res){
     tokenVerifier(token, function(response){   //vérifier le access token auprès du serveur d'authentification      
     
     if (response.statutCode == 200){ 
-            sequelize.query('exec VirementNonTraites').spread((results, rows) => {      
-                
-                    res.status(200).json(rows);
-            })  
+         Virement.findAll({
+            
+            where:{'Statut' : 0} })
+        .then((Virements) => {
+            res.status(200).json({'virements': Virements});
+            
+            
+          }).catch(err => {
+            res.status(404).json({'erreur': err});
+    
+        });
+           
 }
+else { res.status(response.statutCode).json({'erreur': response.error});}
 })
 }
 
@@ -398,7 +407,7 @@ function validerRejeterVirement(req, res){
 
     var Code=req.body.code;
     var Statut = req.body.statut;
-    console.log("le code est "+ Code + "le statut "+ Statut);
+    
 
     const token = req.headers['token']; //récupérer le Access token
     
@@ -417,6 +426,7 @@ function validerRejeterVirement(req, res){
             
              }).catch(err => {return(res.status(500).json({'error': 'Aucun virement mit à jour'}))});                                             
 }
+else { res.status(response.statutCode).json({'erreur': response.error});}
 })
 }
 
