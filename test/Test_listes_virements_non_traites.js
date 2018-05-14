@@ -5,7 +5,7 @@ let server = require('../server');
 chai.use(chaiHttp);
 
 //Tester la récupération de la liste des virements non traites c a d Statut=2
-describe('/Get virement/ListVirementNonTraites ', () => {
+/*describe('/Get virement/ListVirementNonTraites ', () => {
     it('it should get list of transfert non yet validated ', (done) => {
       chai.request(server)
           .get('/virement/ListVirementNonTraites')
@@ -15,5 +15,5 @@ describe('/Get virement/ListVirementNonTraites ', () => {
             done();
           });
     });
-  });
+  });*/
  

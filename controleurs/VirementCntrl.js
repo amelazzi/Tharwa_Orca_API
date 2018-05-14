@@ -4,6 +4,7 @@ var crypto = require('crypto');
 var http = require("http");
 const request = require('request');
 var tokenVerifier = require('./tokenCtrl');
+const sendgrid = require('../Utils/sendgrid')
 //var conversion = require('./fctCtrl');
 var async = require('async-if-else')(require('async'));
 //var async = require('async-if-else');
@@ -65,13 +66,12 @@ function TranferClientTH(req, res){
                                                                         sequelize.query('exec GetNextIdCommission').spread((results, metadata) => {
                                                                         var rows = JSON.parse(JSON.stringify(results[0]));
                                                                         idcom = parseInt(rows.id);
-                                                                        console.log("Id de la commission "+idcom); 
+                                                                        
 
 
                                                                         sequelize.query('exec GetPourcentageCommissionVirTH').spread((results, metadata) => {
                                                                         var rows = JSON.parse(JSON.stringify(results[0]));
                                                                         pourc = parseInt(rows.id);
-                                                                        console.log("Le pourcentage de la commission "+pourc); 
                                                                             
 
                                                                         if(Justificatif==null){                                                                                                                                                                                                                             
@@ -135,7 +135,7 @@ function TranferClientTH(req, res){
                                                             .catch(function(err){
                                                                 //Si une erreur interne au serveur s'est produite :
                                                                  res.status(500).json({'error':'peut pas récuperer le nom du recepteur'}); 
-                                                                 console.log(err);
+                                                                
                                                             });
                                                         }
                                                         else{ 
@@ -146,39 +146,39 @@ function TranferClientTH(req, res){
                                                     .catch(function(err){
                                                         //Si une erreur interne au serveur s'est produite :
                                                          res.status(500).json({'error':'peut pas récuperer le mail du recepteur'}); 
-                                                         console.log(err);
+                                                        
                                                     });
 
                                                 }
-                                                else{ console.log("Le nom de lemetteur inexistant");
+                                                else{ 
                                                     return res.status(404).json({'error':'Le nom de lemetteur inexistant'});
                                                 }
                                             })
                                             .catch(function(err){
                                                 //Si une erreur interne au serveur s'est produite :
                                                  res.status(500).json({'error':'peut pas vérifier le nom de lemetteur'}); 
-                                                 console.log(err);
+                                                
                                             });
                                     
                                     }
-                                    else{ console.log("Le compte de l\'emetteur inexistant");
+                                    else{ 
                                         return res.status(404).json({'error':'Le compte de l\'emetteur inexistant'});
                                     }
                                 })
                                 .catch(function(err){
                                     //Si une erreur interne au serveur s'est produite :
                                      res.status(500).json({'error':'peut pas vérifier le numero de compte lemetteur'}); 
-                                     console.log(err);
+                                    
                                 });
                                  
                     }
-                    else{  console.log("Le compte de destination inexistant");
+                    else{  
                         return res.status(404).json({'error':'Le compte de destination inexistant'});
                     }
             })
-            .catch(function(err){ console.log("peut pas vérifier le numero de compte destination");
+            .catch(function(err){ 
                 return res.status(500).json({'error':'peut pas vérifier le numero de compte destination'}); //interne error
-                console.log(err);
+                
             });
 }
 })
@@ -190,10 +190,7 @@ function TranferClientTH(req, res){
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
-    console.log("type1",Type1)
-    console.log("type2",Type2)
-    console.log("montant",Montant)
-    console.log("motif",Motif)
+    
    
     var  emmeteur ={};
     var destinataire ={};
@@ -207,12 +204,12 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
             if (err){
                 response = {
                     'statutCode' : 404, 
-                    'error': 'Compte emmeteur non existant'          
+                    'error': 'Compte emmeteur non existant ou bloqué'          
                 }
                 rep(response); 
              }else{
                 emmeteur=Compte1.Num;
-                if (Compte1.Balance<Montant){ // verifier si le montant à virer ne depasse pas la balance du compte
+                if (Compte1.Balance>Montant){ // verifier si le montant à virer ne depasse pas la balance du compte
                     response = {
                         'statutCode' : 403, 
                         'error': 'Balance insuffisante'          
@@ -229,7 +226,7 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
                 if (err){
                    response = {
                        'statutCode' : 404, // success
-                       'error': 'Compte destinataire non existant'          
+                       'error': 'Compte destinataire non existant ou bloqué'          
                    }
                    rep(response); 
                 }else{
@@ -260,7 +257,7 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
              }
              ,
              idcommission(callback){ // recupere l'id de commission generer par le virement 
-             fcts.getNextIdComm(function(idc){
+             fcts.getNextIdComm(1,function(idc){
                 idcom=idc;
                 callback();
            })
@@ -278,6 +275,11 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
                             }
                             rep(response); 
                         }else{
+                            fcts.MontantCommission(idcom,function(err,montantcom){
+                                sendgrid.sendEmail(iduser,"Virement THARWA","Un virement de votre compte courant vers votre compte devise Euro avec un montant de "+ Montant + "Da a été effectué avec succès. \n Une commission de : "+montantcom+" Da a été retirée.");
+
+                            });
+
                             response = {
                                 'statutCode' : 200, //succe
                                 'succe': 'Virement  de votre Compte courant vers le Compte devise euro effectue avec succe'          
@@ -297,6 +299,10 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
                         }
                         rep(response); 
                     }else{
+                        fcts.MontantCommission(idcom,function(err,montantcom){
+                            sendgrid.sendEmail(iduser,"Virement THARWA","Un virement de votre compte courant vers votre compte devise Dollar avec un montant de "+ Montant + "Da a été effectué avec succès. \n Une commission de : "+montantcom+" Da a été retirée.");
+
+                        });
                         response = {
                             'statutCode' : 200, //succe
                             'succe': 'Virement  de votre Compte courant vers le Compte devise dollar effectue avec succe'          
@@ -315,6 +321,10 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
                             }
                             rep(response); 
                         }else{
+                            fcts.MontantCommission(idcom,function(err,montantcom){
+                                sendgrid.sendEmail(iduser,"Virement THARWA","Un virement de votre compte devise Euro vers votre compte courant avec un montant de "+ Montant + " € a été effectué avec succès. \n Une commission de : "+montantcom+" €  a été retirée.");
+    
+                            });
                             response = {
                                 'statutCode' : 200, //succe
                                 'succe': 'Virement  de votre Compte devise euro vers le Compte courant effectue avec succe'          
@@ -333,6 +343,10 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
                                 }
                                 rep(response); 
                             }else{
+                                fcts.MontantCommission(idcom,function(err,montantcom){
+                                    sendgrid.sendEmail(iduser,"Virement THARWA","Un virement de votre compte devise Dollar vers votre compte courant avec un montant de "+ Montant + " $ a été effectué avec succès. \n Une commission de : "+montantcom+" $ a été retirée.");
+        
+                                });
                                 response = {
                                     'statutCode' : 200, //succe
                                     'succe': 'Virement  de votre Compte devise dollar vers le Compte courant effectue avec succe'          
@@ -351,6 +365,7 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
                                 }
                                 rep(response); 
                             }else{
+                                sendgrid.sendEmail(iduser,"VirementTHARWA","Le virement entre votre courant et votre compte epargne avec un montant de "+ Montant + "Da a été effectué avec succès ");
                                 response = {
                                     'statutCode' : 200, //succe
                                     'succe': 'Virement  entre  votre Compte courant et votre compte epargne  effectue avec succe'          

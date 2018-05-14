@@ -2,15 +2,26 @@ var oxr = require('open-exchange-rates'),
     fx = require('money');
 var async = require('async-if-else')(require('async'));
     
-module.exports =  function  (Compte,Client,sequelize,TarifCommission){
+module.exports =  function  (Compte,Client,sequelize,TarifCommission,Commission){
 function GetCompte(iduser,Type1,callback){
     Compte.findOne({
         attributes:['Num','Balance'],
         where:{'IdUser' :iduser, 
-        'TypeCompte': Type1} })
+        'TypeCompte': Type1
+    ,'Etat':1} })
     .then((Compte1) => {
         
        callback(null,Compte1);
+      }).catch(err => {
+        callback(err,null);});
+}
+function MontantCommission(idcom,callback){
+    Commission.findOne({
+        attributes:['Montant'],
+        where:{'Id' :idcom} })
+    .then((com) => {
+        
+       callback(null,com.Montant);
       }).catch(err => {
         callback(err,null);});
 }
@@ -23,13 +34,19 @@ function GetUser(iduser,callback){
       }).catch(err => {
         callback(err,null);});
 }
-function getNextIdComm(callback){
+function getNextIdComm(test,callback){
     
-    sequelize.query('exec get_next_idcommission').spread((results, metadata) => {
+    var id=18;
+    if (test==1) {
+        
+        sequelize.query('exec get_next_idcommission').spread((results, metadata) => {
            
         var rows = JSON.parse(JSON.stringify(results[0]));
         callback(parseInt(rows.id));
-    });
+    });}
+    if (test==0) {
+       
+        callback(id);}
 }
 function historique(iduser,callback){
     sequelize.query('exec historique $userid',
@@ -50,7 +67,7 @@ function conversion(montant,par,callback){
     oxr.set({ app_id: 'a8a5c2a6302b453f9266c7254b043f6a' });
 oxr.latest(function() {
     // Apply exchange rates and base rate to `fx` library object:
-    
+    console.log(montant);
 	fx.rates = oxr.rates;
 	fx.base = oxr.base;
     
@@ -65,6 +82,12 @@ oxr.latest(function() {
        
         break ;
         case 3:   callback( fx(montant).from('USD').to('DZD')) //  devise dollar vers courant 
+        break ;
+
+        case 4:   callback(140) //  for test euro to dzd
+        break ;
+
+        case 5:   callback(115) //  for test dollar  to dzd
         break ;
         
 
@@ -230,5 +253,5 @@ var schedule = require('node-schedule');
 
   
 
-return {GetCompte,GetUser,getNextIdComm,VirCourDevis,VirCourEpar,historique}
+return {GetCompte,GetUser,getNextIdComm,VirCourDevis,VirCourEpar,historique,conversion,MontantCommission}
 }

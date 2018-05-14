@@ -8,7 +8,7 @@ var expect  = require('chai').expect;
 chai.use(chaiHttp);
 
 //tester la validation ou rejet dun virement
-describe('/Post virement/Virement vers un autre client tharwa sans justificatif ', () => {
+/*describe('/Post virement/Virement vers un autre client tharwa sans justificatif ', () => {
     it('it should  transfert vers un autre client Tharwa sans justificatif' , (done) => {
       chai.request(server)
           .post('/virement/VirementClientTh')
@@ -24,4 +24,4 @@ describe('/Post virement/Virement vers un autre client tharwa sans justificatif 
             done();
           });
     });
-  });
+  });*/
