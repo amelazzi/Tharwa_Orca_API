@@ -70,8 +70,18 @@ module.exports = function(sequelize, DataTypes) {
     Type: {
       type: DataTypes.INTEGER,
       allowNull: false
+    },
+    IdCommission: {
+      type:DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+          model: 'Commission',
+          key: 'Id'
+      }
     }
-  }, {
+  },
+  
+  {
     createdAt: false,
     updatedAt: false,
     tableName: 'Virement'

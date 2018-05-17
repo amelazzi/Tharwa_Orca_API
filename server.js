@@ -1,5 +1,3 @@
-
-
 //imports
 const express = require("express");
 const bodyParser = require('body-parser');
@@ -16,7 +14,7 @@ server.use(bodyParser.json());
 // config of database THARWA
 //den1.mssql6.gear.host
 
-const sequelize = new Sequelize('THARWA', 'cnx', 'orca@2018', {
+const sequelize = new Sequelize('tharwa', 'cnx', 'orca@2018', {
   host: 'localhost',
   dialect: 'mssql',
   operatorsAliases: false,
@@ -51,19 +49,22 @@ const Client = sequelize.import(__dirname + "/models/Client");
 const Compte = sequelize.import(__dirname + "/models/Compte");
 const Virement = sequelize.import(__dirname + "/models/Virement");
 const Banque = sequelize.import(__dirname + "/models/Banque");
+const TarifCommission=sequelize.import(__dirname + "/models/TarifCommission");
+const Commission = sequelize.import(__dirname + "/models/Commission");
 
 //Acces aux données
 const compteAccess = require('./Data_access/Compte_access')(Compte,sequelize);
 
 //Controllers
-const fcts=require('./controleurs/fcts')(Compte,Client,sequelize);
+const fcts=require('./controleurs/fcts')(Compte,Client,User,Virement,sequelize,TarifCommission,Commission);
 const tokenController = require('./controleurs/tokenCtrl');
-const usersController = require('./controleurs/usersCtrl')(User,sequelize);
+const usersController = require('./controleurs/usersCtrl')(User,Virement,sequelize);
+const VirementController = require('./controleurs/VirementCntrl')(Virement,Compte,User,Client,fcts,sequelize,);
+
 const clientController = require('./controleurs/clientCtrl')(Client,User,Compte,sequelize,fcts);
 
 const accountController = require('./controleurs/accountCtrl')(Client,Compte,compteAccess,sequelize);
 
-const VirementController = require('./controleurs/VirementCntrl')(Virement,Compte,User,Client,sequelize,fcts);
 const GestionnaireController = require('./controleurs/GestionnaireCntrl')(Virement,User,Banque,sequelize);
 
 //Routes
@@ -77,17 +78,14 @@ const clientRoute = require('./routes/clientRoutes')(express,__dirname,tokenCont
 server.use('/clients',clientRoute);
 
 
-const VirementRoute = require('./routes/VirementRoute')(express,VirementController,tokenController);
+const VirementRoute = require('./routes/VirementRoute')(express,VirementController,tokenController,usersController);
 server.use('/virement',VirementRoute);
 
 const GestionnaireRoute = require('./routes/GestionnaireRoute')(express,GestionnaireController,tokenController);
 server.use('/gestionnaire',GestionnaireRoute);
 
-//test 
-//const testFct = require('./test/testFct')(fcts);
-//accountFct = require('./test/testAccount')(compteAccess);
 
-server.listen(8080,function (){
+server.listen(8088,function (){
    console.log("Serveur en écoute !");
    console.log(__dirname)
 });

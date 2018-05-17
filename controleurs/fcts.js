@@ -1,7 +1,9 @@
+
 var oxr = require('open-exchange-rates'),
     fx = require('money');
     
-module.exports =  function  (Compte,Client,sequelize){
+module.exports =  function  (Compte,Client,User,Virement,sequelize,TarifCommission,Commission){
+
 function GetCompte(iduser,Type1,callback){
     Compte.findOne({
         attributes:['Num','Balance'],
@@ -123,5 +125,140 @@ function VirCourEpar(Montant,emmeteur,destinataire,Motif,Nom,Type1,Type2,idcom,c
                 
 
 }
-return {GetCompte,GetUser,getNextIdComm,VirCourDevis,VirCourEpar,historique}
+
+// Fonctions Virement Tharwa
+function GetNextIdCommission(callback){
+
+    sequelize.query('exec GetNextIdCommission').spread((results, metadata) => {
+    var rows = JSON.parse(JSON.stringify(results[0]));
+    callback(parseInt(rows.id));});
+}
+
+function GetPourcentageCommission(code,callback){
+    TarifCommission.findOne({
+        attributes:['Pourcentage'],
+        where:{'Code' :code}})
+        .then((pourcentage) => {
+            
+           callback(null,pourcentage.Pourcentage);
+          }).catch(err => {
+            callback(err,null);});
+    }
+
+
+function AddVirementClientTharwa(montant, dest,compteemmetteur,Motif,nomemmetteur,nomdestinataire,pourc,idcom,call){
+
+    sequelize.query('exec AddVirementClientTharwa $Montant, $CompteDestinataire, $CompteEmmetteur, $Motif, $NomEmetteur, null, $Statut, $NomDestinataire,$pourcentage,$commission',
+    {
+        bind: {
+                Montant: montant, 
+                CompteDestinataire: dest,   //Compte destination                                                                                                                                                                                                                      
+                CompteEmmetteur:compteemmetteur,    //Compte emetteur 
+                Motif:Motif,    //Motif d'envoi                                                               
+                NomEmetteur:nomemmetteur, //Nom emetteur
+                Statut:1,
+                NomDestinataire:nomdestinataire, // Nom recepteur
+                pourcentage:pourc,
+                commission:idcom
+             }
+             
+    }).then((res) => {
+        call(null,res);   
+    }).catch(err => {
+        call(err,null);  
+    });
+
+}
+function AddVirementClientTharwaEnAttente(montant,dest,emetteur,Motif,nomemmetteur,Justificatif,nomrecepteur,pourc,idcom,call){
+    sequelize.query('exec AddVirementClientTharwaEnAttente $Montant, $CompteDestinataire, $CompteEmmetteur, $Motif, $NomEmetteur,$justificatif, null,  $NomDestinataire,$pourcentage,$commission',
+    {
+        bind: {
+                CompteDestinataire: dest,   //Compte destination  
+                Montant: montant,
+                justificatif :Justificatif,                                                              
+                CompteEmmetteur:emetteur,    //Compte emetteur 
+                Motif:Motif,    //Motif d'envoi                                                               
+                NomEmetteur:nomemmetteur, //Nom emetteur
+                NomDestinataire:nomrecepteur ,// Nom recepteur
+                pourcentage:pourc,
+                commission:idcom
+    }}).then((res) => {
+        call(null,res);   
+    }).catch(err => {
+        call(err,null);  
+    });
+}
+
+function getIdUser(comptee, callback){
+    Compte.findOne({ // Récupération d'un numéro de compte et de son ID
+    attributes:['Num','IdUser'],
+    where:{'Num' :comptee} })
+    .then((Compte1) => {        
+        callback(null,Compte1);
+       }).catch(err => {
+         callback(err,null);
+        });
+}
+
+function getCompteBalance(iduseer,callback){
+    Compte.findOne({
+        attributes:['Num','Balance'],
+        where:{'IdUser' :iduseer} })
+        .then((CompteBalance) => {     
+            console.log("balance de lemmetteur est "+CompteBalance.Balance)   
+            callback(null,CompteBalance);
+           }).catch(err => {
+             callback(err,null);});
+}
+
+function getUserr (iduser,callback){
+    User.findOne({
+        attributes:['username'],
+        where:{'userId' :iduser} })
+        .then((usernamee) => {        
+            callback(null,usernamee.username);
+           }).catch(err => {
+             callback(err,null);});
+}
+
+function getMontantIdCommission(codee, callback){ // Recupération du montant de la commission ansi que sons ID
+    Virement.findOne({
+        attributes:['Montant','IdCommission'],
+        where:{'Code' :codee}
+    }).then((MontantIdCommission) => {        
+        callback(null,MontantIdCommission);
+       }).catch(err => {
+         callback(err,null);});
+}
+
+function getMontantSent(idcomm, callback){ // Récupération du montant envoye lors dun virement non encore validé
+    Commission.findOne({
+        attributes:['Montant'],
+        where:{'Id' :idcomm}
+    }).then((IdCommission) => {        
+        callback(null,IdCommission.Montant);
+       }).catch(err => {
+         callback(err,null);}); 
+}
+
+function validerRejeterVirement(Code,CompteEmmett,CompteDestin,Idcomm,MontantComm,MontantVir,call){ // Valider ou rejetr un virement en changeant le statut (statut = 1: valider) (statut = 2: rejeter)
+    sequelize.query('exec ValRejVir $Codee, $CompteEmmetteur, $CompteDestinataire, $Idcommission, $MontantCommission,$MontantVirement',
+    {
+        bind: {
+            Codee: Code,   
+            CompteEmmetteur: CompteEmmett,
+            CompteDestinataire :CompteDestin,                                                              
+            Idcommission:Idcomm,    
+            MontantCommission:MontantComm,                                                               
+            MontantVirement:MontantVir 
+                
+    }}).then((res) => {
+        call(null,res);   
+    }).catch(err => {
+        console.log("erroor est "+ err)
+        call(err,null);  
+    });
+}
+
+return {GetCompte,GetUser,getNextIdComm,VirCourDevis,VirCourEpar,historique,GetNextIdCommission,GetPourcentageCommission,AddVirementClientTharwa,AddVirementClientTharwaEnAttente,getUserr,getCompteBalance,getIdUser,getMontantIdCommission,getMontantSent,validerRejeterVirement}
 }
