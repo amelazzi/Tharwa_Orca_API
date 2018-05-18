@@ -6,7 +6,7 @@ let should = chai.should();
 chai.use(chaiHttp);
 
 //tester la validation ou rejet dun virement
-describe('/Post virement/validRejetVir ', () => {
+/*describe('/Post virement/validRejetVir ', () => {
     it('it should  update  the transfet: validate or reject', (done) => {
       chai.request(server)
           .post('/virement/validRejetVir')
@@ -20,4 +20,4 @@ describe('/Post virement/validRejetVir ', () => {
             done();
           });
     });
-  });
+  });*/

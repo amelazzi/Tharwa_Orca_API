@@ -214,6 +214,7 @@ function historique(iduser,callback){
       
 }
 function tauxChange(base,callback){
+  
 
     oxr.set({ app_id: 'a8a5c2a6302b453f9266c7254b043f6a' });
     oxr.latest(function() {
@@ -289,7 +290,7 @@ function makeNumAccount (middle,codeMonnaie){
     var num = 'THW'+ middle + codeMonnaie;
     return num
   }
-    
+  
     //exporter les services :
     return {addClient,getClientInfo,historique,tauxChange};
 
