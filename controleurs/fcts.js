@@ -3,12 +3,8 @@ var oxr = require('open-exchange-rates'),
     fx = require('money');
 var async = require('async-if-else')(require('async'));
     
-<<<<<<< HEAD
 module.exports =  function  (Compte,Client,User,Virement,sequelize,TarifCommission,Commission){
 
-=======
-module.exports =  function  (Compte,Client,sequelize,TarifCommission,Commission){
->>>>>>> dfd4f0bf05ba437f2a6b1b623e0d73152cbb905f
 function GetCompte(iduser,Type1,callback){
     Compte.findOne({
         attributes:['Num','Balance'],

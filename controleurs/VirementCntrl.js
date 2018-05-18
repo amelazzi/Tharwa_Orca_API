@@ -3,16 +3,9 @@ var crypto = require('crypto');
 var http = require("http");
 const request = require('request');
 var tokenVerifier = require('./tokenCtrl');
-<<<<<<< HEAD
 var async = require('async-if-else')(require('async')); 
 var multer  = require('multer')
 var upload = multer()
-=======
-const sendgrid = require('../Utils/sendgrid')
-//var conversion = require('./fctCtrl');
-var async = require('async-if-else')(require('async'));
-//var async = require('async-if-else');
->>>>>>> dfd4f0bf05ba437f2a6b1b623e0d73152cbb905f
 //Routes
 module.exports = function(Virement,Compte,User,Client,fcts,sequeliz) {
 
@@ -217,16 +210,8 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
-<<<<<<< HEAD
-    console.log("type1",Type1)
-    console.log("type2",Type2)
-    console.log("montant",Montant)
-    console.log("motif",Motif)
-    //0,Montant,emmeteur,destinataire,Motif,Nom,Type1,Type2,idcom,function(err,res)
-=======
     
    
->>>>>>> dfd4f0bf05ba437f2a6b1b623e0d73152cbb905f
     var  emmeteur ={};
     var destinataire ={};
     var nom={};
