@@ -7,7 +7,7 @@ var multer  = require('multer')
 var upload = multer()
 var path = require('path');
 
-module.exports = function(express,VirementController,tokenController,usersController){
+module.exports = function(express,chemin,VirementController,tokenController,usersController){
    
     const router = express.Router();
 
@@ -140,6 +140,37 @@ router.post('/validRejetVirement',(req,res) =>{
 }
 });
 
+/*-----------------------------------------------------------------------------------------------------------------------*/   
+
+/*------------------Service pour la récupération du justificatif correspondant à un compte ------------------------------*/
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
+
+
+router.get('/justificatif',(req,res) =>{
+
+    const token = req.headers['token']; //Récupération de l'access Token
+    var codevirement=req.headers['codevirement'];
+    console
+       
+    tokenController(token, function(OauthResponse){
+        if (OauthResponse.statutCode == 200){
+            VirementController.getJustificatif(OauthResponse.userId,codevirement,(response)=>{
+               if(response.statutCode == 200){
+                    console.log('le justificatif est récupéré')
+                    Justificatif = response.Justificatif;
+                    res.sendFile(Justificatif, {"root": chemin});
+                     
+               } else {
+                res.status(response.statutCode).json({'error': response.error}); 
+               }
+               
+            });
+        }else {
+            res.status(OauthResponse.statutCode).json({'error': OauthResponse.error});
+        }
+    });
+});
 
 
 return router;

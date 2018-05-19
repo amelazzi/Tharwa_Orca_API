@@ -78,7 +78,7 @@ const clientRoute = require('./routes/clientRoutes')(express,__dirname,tokenCont
 server.use('/clients',clientRoute);
 
 
-const VirementRoute = require('./routes/VirementRoute')(express,VirementController,tokenController,usersController);
+const VirementRoute = require('./routes/VirementRoute')(express,__dirname,VirementController,tokenController,usersController);
 server.use('/virement',VirementRoute);
 
 const GestionnaireRoute = require('./routes/GestionnaireRoute')(express,GestionnaireController,tokenController);

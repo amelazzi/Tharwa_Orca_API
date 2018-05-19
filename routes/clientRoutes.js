@@ -1,5 +1,5 @@
 module.exports = function(express,chemin,tokenController,accountController,clientController){
-   
+
     const router = express.Router();
 
 /*-----------------------------------------------------------------------------------------------------------------------*/   

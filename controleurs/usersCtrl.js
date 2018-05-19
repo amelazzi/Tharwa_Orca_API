@@ -239,10 +239,6 @@ function getUserInfo  (UserId,callback){
             
 }
 
-
-
-
-
     //exporter les services :
     return {BankerInscription,getUserInfo,FileUpload,createUserAccount};
 }

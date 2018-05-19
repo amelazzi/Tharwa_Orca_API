@@ -521,7 +521,43 @@ function validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,req
 }
 })
 }
-return {TranferClientTH,Virement_local,Listes_virements_non_traites,validerRejeterVirement};
+
+function getJustificatif (userId,codevirement,callback){
+    
+    Virement.findOne({
+        attributes:['NomEmetteur','CompteEmmetteur','NomDestinataire','CompteDestinataire','Justificatif'],
+        where: {  'Code' : codevirement}
+    }).then( (JustificatifFound)=>{
+
+        if(JustificatifFound){
+            response = {
+                'statutCode' : 200, // success
+                'NomEmetteur':JustificatifFound.NomEmetteur,
+                'CompteEmmetteur': JustificatifFound.CompteEmmetteur,
+                'NomDestinataire' : JustificatifFound.NomDestinataire,
+                'CompteDestinataire':JustificatifFound.CompteDestinataire,
+                'Justificatif' : JustificatifFound.Justificatif    
+            }
+            callback(response);
+        }else {
+            response = {
+                'statutCode' : 404, //not Found
+                'error':'Le code ne correspond à aucun justificatif'          
+            }
+            callback(response);
+        }
+    }).catch((err)=>{
+        console.log(err);
+        response = {
+            'statutCode' : 500, 
+            'error':'Can\'t verify virement'        
+        }
+        callback(response);
+    });
+
+}
+
+return {TranferClientTH,Virement_local,Listes_virements_non_traites,validerRejeterVirement,getJustificatif};
 
 }
 
