@@ -37,19 +37,32 @@ module.exports = function(express,chemin,VirementController,tokenController,user
                         if (OauthResponse.statutCode == 200){
                                 console.log("ID USER EMMETTEUR EST "+OauthResponse.userId)  
                                 if (montant>=200000) {
-                                    imagePath =  req.file.path;      
+                                    if(req.file != null){
+                                        imagePath =  req.file.path;
+                                        VirementController.TranferClientTH(OauthResponse.userId,montant,imagePath,dest,Motif,(response)=>{
+                                            if (response.statutCode==200){
+                                                res.status(200).json({'succe': response.Success});
+                                            }else{
+                                                res.status(response.statutCode).json({'error': response.error}); 
+                                            }
+                                        })
+                                    }else {
+                                        res.status(404).json({'error': "Justificatif manquant"});
+                                    }
+                                         
                                 } 
                                 else{
                                     imagePath=null
+                                    VirementController.TranferClientTH(OauthResponse.userId,montant,imagePath,dest,Motif,(response)=>{
+                                        if (response.statutCode==200){
+                                            res.status(200).json({'succe': response.Success});
+                                        }else{
+                                            res.status(response.statutCode).json({'error': response.error}); 
+                                        }
+                                    })
                                 }       
                                 
-                                VirementController.TranferClientTH(OauthResponse.userId,montant,imagePath,dest,Motif,(response)=>{
-                                if (response.statutCode==200){
-                                    res.status(200).json({'succe': response.Success});
-                                }else{
-                                    res.status(response.statutCode).json({'error': response.error}); 
-                                }
-                            })}
+                         }
                         else {
                             res.status(OauthResponse.statutCode).json({'error': OauthResponse.error});
                         }
