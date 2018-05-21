@@ -1,6 +1,6 @@
 
 var oxr = require('open-exchange-rates'),
-    fx = require('money');
+fx = require('money');
 var async = require('async-if-else')(require('async'));
     
 module.exports =  function  (Compte,Client,User,Virement,sequelize,TarifCommission,Commission){
@@ -225,65 +225,38 @@ function getIdUser(comptee, callback){
         });
 }
 
-function getCompteBalance(iduseer,callback){
-    Compte.findOne({
-        attributes:['Num','Balance'],
-        where:{'IdUser' :iduseer} })
-        .then((CompteBalance) => {     
-            console.log("balance de lemmetteur est "+CompteBalance.Balance)   
-            callback(null,CompteBalance);
-           }).catch(err => {
-             callback(err,null);});
-}
-
-function getUserr (iduser,callback){
-    User.findOne({
-        attributes:['username'],
-        where:{'userId' :iduser} })
-        .then((usernamee) => {        
-            callback(null,usernamee.username);
-           }).catch(err => {
-             callback(err,null);});
-}
-
-function getMontantIdCommission(codee, callback){ // Recupération du montant de la commission ansi que sons ID
+function getVirement(codee, callback){ // Recupération du montant de la commission ansi que sons ID
     Virement.findOne({
         attributes:['Montant','IdCommission'],
         where:{'Code' :codee}
     }).then((MontantIdCommission) => {        
         callback(null,MontantIdCommission);
        }).catch(err => {
+           console.log("error est "+err)
          callback(err,null);});
 }
 
-function getMontantSent(idcomm, callback){ // Récupération du montant envoye lors dun virement non encore validé
-    Commission.findOne({
-        attributes:['Montant'],
-        where:{'Id' :idcomm}
-    }).then((IdCommission) => {        
-        callback(null,IdCommission.Montant);
-       }).catch(err => {
-         callback(err,null);}); 
-}
 
-function validerRejeterVirement(Code,CompteEmmett,CompteDestin,Idcomm,MontantComm,MontantVir,call){ // Valider ou rejetr un virement en changeant le statut (statut = 1: valider) (statut = 2: rejeter)
-    sequelize.query('exec ValRejVir $Codee, $CompteEmmetteur, $CompteDestinataire, $Idcommission, $MontantCommission,$MontantVirement',
+function validerRejeterVirement(Code,CompteEmmett,CompteDestin,Statut,Idcomm,MontantComm,MontantVir,call){ // Valider ou rejetr un virement en changeant le statut (statut = 1: valider) (statut = 2: rejeter)
+    sequelize.query('exec ValRejVir $Codee, $CompteEmmetteur, $CompteDestinataire,$stat, $Idcommission, $MontantCommission,$MontantVirement',
     {
         bind: {
             Codee: Code,   
             CompteEmmetteur: CompteEmmett,
-            CompteDestinataire :CompteDestin,                                                              
+            CompteDestinataire :CompteDestin, 
+            stat:Statut,                                                             
             Idcommission:Idcomm,    
             MontantCommission:MontantComm,                                                               
-            MontantVirement:MontantVir 
+            MontantVirement:MontantVir }
                 
-    }}).then((res) => {
+      }).then((res) => {
         call(null,res);   
     }).catch(err => {
-        console.log("erroor est "+ err)
         call(err,null);  
     });
 }
 
-return {GetCompte,GetUser,getNextIdComm,VirCourDevis,VirCourEpar,historique,GetNextIdCommission,GetPourcentageCommission,AddVirementClientTharwa,AddVirementClientTharwaEnAttente,getUserr,getCompteBalance,getIdUser,getMontantIdCommission,getMontantSent,validerRejeterVirement}
+return {GetCompte,GetUser,getNextIdComm,VirCourDevis,VirCourEpar,historique,MontantCommission,
+    GetNextIdCommission,GetPourcentageCommission,AddVirementClientTharwa,
+    AddVirementClientTharwaEnAttente,getIdUser,getVirement,validerRejeterVirement}
 }

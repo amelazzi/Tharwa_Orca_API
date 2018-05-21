@@ -1,3 +1,4 @@
+
 /*-----------------------------------------------------------------------------------------------------------------------*/   
 
 /*--------------------------------Service pour le virement vers un autre client Tharwa------------------------------------*/
@@ -39,9 +40,9 @@ module.exports = function(express,chemin,VirementController,tokenController,user
                             else{
                                 imagePath=null
                             }       
-                            console.log("On verra bien le chemin "+ imagePath)
+                            
                             VirementController.TranferClientTH(OauthResponse.userId,montant,imagePath,dest,Motif,(response)=>{
-                            if (response.statutCode==500){
+                            if (response.statutCode==200){
                                 res.status(200).json({'succe': response.Success});
                             }else{
                                 res.status(response.statutCode).json({'error': response.error}); 
@@ -132,7 +133,19 @@ router.post('/validRejetVirement',(req,res) =>{
      else{  
     tokenController(token, function(OauthResponse){
     if (OauthResponse.statutCode == 200){
-    VirementController.validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,req,res);}
+    VirementController.validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,(response)=>{
+        
+        if(response.statutCode == 200){
+            console.log("yasm")
+        res.status(200).json({'succe': response.Success});
+        } else {
+            console.log("Nawel")
+        res.status(response.statutCode).json({'error': response.error}); 
+        }
+       
+    });
+    
+    ;}
     else {
         res.status(OauthResponse.statutCode).json({'error': OauthResponse.error});
     }

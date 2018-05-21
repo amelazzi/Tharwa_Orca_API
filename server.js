@@ -55,7 +55,7 @@ const Commission = sequelize.import(__dirname + "/models/Commission");
 //Acces aux données
 const compteAccess = require('./Data_access/Compte_access')(Compte,sequelize);
 
-//Controllers
+//Controllers                                         
 const fcts=require('./controleurs/fcts')(Compte,Client,User,Virement,sequelize,TarifCommission,Commission);
 const tokenController = require('./controleurs/tokenCtrl');
 const usersController = require('./controleurs/usersCtrl')(User,Virement,sequelize);

@@ -6,6 +6,8 @@ var tokenVerifier = require('./tokenCtrl');
 var async = require('async-if-else')(require('async')); 
 var multer  = require('multer')
 var upload = multer()
+var Codes = require('../ressources/codes');
+var Erreur_francais = require('../ressources/erreur_francais');
 //Routes
 module.exports = function(Virement,Compte,User,Client,fcts,sequeliz) {
 
@@ -34,8 +36,8 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
             fcts.GetPourcentageCommission(4,function(err,pourcentage){
                 if(err){
                     response = {
-                        'statutCode' : 404, // success
-                        'error': 'Commission non trouvée'          
+                        'statutCode' : Codes.code.codenotfound, // success
+                        'error': Erreur_francais.erreur_francais.commissioninexistante         
                      }
                     rep(response); 
                 }
@@ -65,8 +67,8 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
                  else
                  {
                     response = {
-                        'statutCode' : 404, // success
-                        'error': 'ID destinataire non existant'          
+                        'statutCode' : Codes.code.codenotfound, // success
+                        'error': Erreur_francais.erreur_francais.idnonexistant        
                      }
                     rep(response); 
                  }
@@ -76,8 +78,8 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
             fcts.GetUser(iduseremmetteur,function(err, nomEmmetteur){
                 if (err){
                     response = {
-                        'statutCode' : 404, // success
-                        'error': 'Nom emmetteur non existant'          
+                        'statutCode' : Codes.code.codenotfound, // success
+                        'error': Erreur_francais.erreur_francais.nonemmetteurnonexistant        
                     }
                     rep(response); 
                  }
@@ -94,8 +96,8 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
             fcts.GetCompte(iduseremmetteur,0,function(err,comptebalance){
                 if(err){
                     response = {
-                        'statutCode' : 404, // success
-                        'error': 'Numero de compte emmetteur non existant' 
+                        'statutCode' : Codes.code.codenotfound, // success
+                        'error': Erreur_francais.erreur_francais.numcompteemmetteurnonexistant
                     }
                     rep(response); 
                     }
@@ -107,11 +109,23 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
                         callback()
                         }
                         else{
-                        response = {
-                            'statutCode' : 404, // success
-                            'error': 'LE compte nest pas de type THARWA ou bien balance insuffisante'
-                        }
-                        rep(response); 
+                            if(comptebalance.Num.substr(0, 3)!='THW'){
+                                response = {
+                                    'statutCode' : Codes.code.codenotfound, // success
+                                    'error': Erreur_francais.erreur_francais.emmetteurnonTHARWA
+                                }
+                                rep(response); 
+
+                            }
+                            else{
+                                response = {
+                                    'statutCode' : Codes.code.codenotfound, // success
+                                    'error': Erreur_francais.erreur_francais.balanceinsuffisante
+                                }
+                                rep(response); 
+
+                            }
+                       
                         }
                     
                 }
@@ -119,11 +133,10 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
         },    
         GetNomDestinataire(callback){ // récupération nom destinataire
             fcts.GetUser(idrecepteur,function(err, usernamee){
-                console.log("errur est "+err)
                 if (err){                
                     response = {
-                        'statutCode' : 404, // success
-                        'error': 'Nom du destinataire non existant'          
+                        'statutCode' : Codes.code.codenotfound, // success
+                        'error': Erreur_francais.erreur_francais.nomdestinatairenonexistant         
                     }
                     rep(response); 
                  }
@@ -139,24 +152,22 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
         function(callback){
             console.log("le montant est "+ montant + "le compte destinataire est "+Comptedest+ " numero compte emetteur"+numcompteemmetteur+ " Motif est "+Motif +nomemmetteur+nomrecepteur+pourcentagecomm+'commision '+residcomm+ "le chemin est "+imagePath);
             
-           if ((imagePath=='null') && (montant<200000)){
-               console.log("salut1")
+           if (montant<200000){
 
                     fcts.AddVirementClientTharwa(montant,Comptedest,numcompteemmetteur,Motif,nomemmetteur,nomrecepteur,pourcentagecomm,residcomm,function(err,res){
-                        console.log("salut2"+err)
+                        
                         if (err){
-                            console.log("erreur sans justificatif "+err)
-                            response = {
-                                'statutCode' : 404, // success
-                                'error': 'Virement sans justificatif non effectué'          
+                             response = {
+                                'statutCode' : Codes.code.codenotfound, // success
+                                'error': Erreur_francais.erreur_francais.vir_sansjustif_noneffetue         
                             }
                             rep(response); 
                          }
                          else{
-                            console.log("salut aa")
+                            console.log("siduzue")
                             response = {
-                                'statutCode' : 500, // success
-                                'Success': 'Virement sans justificatif effectué avec succès'          
+                                'statutCode' : Codes.code.codesucce, // success
+                                'Success': Erreur_francais.erreur_francais.vir_sansjustif_effetue     
                             }
                             rep(response); 
                          }
@@ -164,22 +175,22 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
                 })
             }
             else{
+                console.log("teste2")
                 if ((montant>=200000) &&(imagePath.substr(0,13 )=='justificatifs')){
                     fcts.AddVirementClientTharwaEnAttente(montant,Comptedest,numcompteemmetteur,Motif,nomemmetteur,imagePath,nomrecepteur,pourcentagecomm,residcomm,function(err,res){
-                        if (err){
-                        
+                        if (err){                        
                             response = {
-                                'statutCode' : 404, // success
-                                'error': 'Virement avec justificatif non effectué'          
+                                'statutCode' : Codes.code.codenotfound, // success
+                                'error': Erreur_francais.erreur_francais.vir_justif_noneffetue         
                             }
                             rep(response); 
                          }
                          else{
                             response = {
-                                'statutCode' : 500, // success
-                                'Success': 'Virement avec justificatif mis en attente'          
+                                'statutCode' : Codes.code.codesucce, // success
+                                'Success': Erreur_francais.erreur_francais.vir_justif_effetue      
                             }
-                            rep(response); 
+                            rep(response)
                          }
                     
                 })
@@ -187,8 +198,8 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
                 }
                 else{
                     response = {
-                        'statutCode' : 500, // success
-                        'Success': ' Justificatif manquant'          
+                        'statutCode' : Codes.code.codenotfound, // success
+                        'Success': Erreur_francais.erreur_francais.justificatifmanquant        
                     }
                     rep(response);
                 }
@@ -439,81 +450,67 @@ else { res.status(response.statutCode).json({'erreur': response.error});}
 /*--------------------------------Procedure pour valider ou rejeter un virement -----------------------------------------*/
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
-function validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,req, res){
+function validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,rep){
     var idcommission ={}
-    var montantcommission= {}
-    var montantenvoi ={}
+    var MontantVirement= {}
+    var montantcomm ={}
 
     async.series({
-        montantcommission(callback){//montant de la commission 
-            fcts.getMontantIdCommission(code,function(err,montantcommission){
+        Virements(callback){//montant envoye par lemmetteur non encore envoye
+            fcts.getVirement(code,function(err,montantcommission){
+                console.log("tes0")
                 if(err){
+                    console.log("tes4")
                     response = {
-                        'statutCode' : 404, // success
-                        'error': 'Commission inexistante'          
+                        'statutCode' :  Codes.code.codenotfound, // success
+                        'error': Erreur_francais.erreur_francais.montantnontrouve         
                      }
                     rep(response); 
                 }
                 else {
-                    montantcommission=montantcommission.Montant
-                    console.log("le montant virement non encore validé "+montantcommission)
-                    callback()
-                }
-                                
-            })
-        },
-        idcommission(callback){//montant de l'ID de la commission
-            fcts.getMontantIdCommission(code,function(err,montantcommission){
-                if(err){
-                    response = {
-                        'statutCode' : 404, // success
-                        'error': 'Id inexistant'          
-                     }
-                    rep(response); 
-                }
-                else {
+                    MontantVirement=montantcommission.Montant
                     idcommission=montantcommission.IdCommission
-                    console.log("id de la commission est "+idcommission )
+                    console.log("le montant virement non encore validé "+MontantVirement+ "id de la commison finale"+idcommission)
                     callback()
                 }
                                 
             })
         },
-        montantenvoye(callback){//Montant envoye par l'emmetteur pas encore envoyé
-            fcts.getMontantSent(idcommission,function(err,montantenvoye){
-                if(err){
+           
+        montantenvoye(callback){//Commission non encore enlevee a lemmetter
+            fcts.MontantCommission(idcommission,function(err,montantdecommission){
+                console.log("tes1")
+                if(err){console.log("tes2")
                     response = {
-                        'statutCode' : 404, // success
-                        'error': 'Commission inexistante'          
+                        'statutCode' : Codes.code.codenotfound, // success
+                        'error': "Erreur_francais.erreur_francais.commissioninexistante   "        
                      }
                     rep(response); 
                 }
                 else {
-                    montantenvoi=montantenvoye
-                    console.log("le montant de la commission "+montantenvoi)
+                    montantcomm=montantdecommission
+                    console.log("montant Commission "+montantcomm)
                     callback()
                 }
                                 
             })
         },
-
+        
         function(callback){//Montant envoye par l'emmetteur pas encore envoyé
-        console.log("le code est "+ code+ "compte emmetteur est "+comptemetteur+ "id de la commission est "+idcommission+ " montant de la commission est "+ montantcommission+ " le montant denvoi est "+montantenvoi)
-     
-            fcts.validerRejeterVirement(code,comptemetteur,idcommission,montantcommission,montantenvoi,function(err,res){
-                console.log("salut2"+err)
+        console.log("le code est "+ code+ "compte emmetteur est "+comptemetteur+ "id de la commission est "+idcommission+ " montant de la commission est "+ montantcomm+ " le montant denvoi est "+MontantVirement)
+            fcts.validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,idcommission,montantcomm,MontantVirement,function(err,res){                
                 if (err){
-                    console.log("erreur sans justificatif "+err)
+                   
                     response = {
-                        'statutCode' : 404, // success
-                        'error': 'Erreur de validation de virement'          
+                        'statutCode' : Codes.code.codenotfound, 
+                        'error': Erreur_francais.erreur_francais.virementnonreussi          
                     }
                     rep(response); 
                  }
                  else{
                     response = {
-                        'statutCode' : 500, // success
-                        'Success': 'Le virement a été validé avec succes'          
+                        'statutCode' : Codes.code.codesucce, // success
+                        'Success': Erreur_francais.erreur_francais.virementreussi    
                     }
                     rep(response); 
                  }
@@ -531,7 +528,7 @@ function getJustificatif (userId,codevirement,callback){
 
         if(JustificatifFound){
             response = {
-                'statutCode' : 200, // success
+                'statutCode' : Codes.code.codesucce, // success
                 'NomEmetteur':JustificatifFound.NomEmetteur,
                 'CompteEmmetteur': JustificatifFound.CompteEmmetteur,
                 'NomDestinataire' : JustificatifFound.NomDestinataire,
@@ -541,16 +538,16 @@ function getJustificatif (userId,codevirement,callback){
             callback(response);
         }else {
             response = {
-                'statutCode' : 404, //not Found
-                'error':'Le code ne correspond à aucun justificatif'          
+                'statutCode' : Codes.code.codenotfound, //not Found
+                'error':Erreur_francais.erreur_francais.justificatifnontrouve      
             }
             callback(response);
         }
     }).catch((err)=>{
         console.log(err);
         response = {
-            'statutCode' : 500, 
-            'error':'Can\'t verify virement'        
+            'statutCode' : Codes.code.servererror, 
+            'error':Erreur_francais.erreur_francais.erreurservervirement       
         }
         callback(response);
     });
