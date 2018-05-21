@@ -357,9 +357,37 @@ function getCompteNonValide(callback){
    
 }
 
+/*-----------------------------------------------------------------------------------------------------------------------*/   
+
+/*-------------------------Procedure pour récupérer le userId du propriétaire d'un compte bancaire------------------------------------*/
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
+
+function getAccountOwner (numCompte, callback){
+
+    Compte.findOne(
+        {
+            attributes:['IdUser'],
+            where: { 'Num' : numCompte}
+        }
+    ).then((accountFound)=>{
+        if(accountFound){
+           
+            callback(accountFound.IdUser)
+
+        }else {
+
+            callback(false)
+        }
+    }).catch((err)=>{
+        console.log (err)
+        callback(false)
+    });
+
+}
 
 
 //exports :
-return {CreateNewBanqueAccount,validateAccount,getClientAccounts,getCompteNonValide,rejectAccount};
+return {CreateNewBanqueAccount,validateAccount,getClientAccounts,getCompteNonValide,rejectAccount,getAccountOwner};
 
 }

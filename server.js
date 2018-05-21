@@ -1,9 +1,8 @@
-
-
 //imports
 const express = require("express");
 const bodyParser = require('body-parser');
 const Sequelize = require('sequelize');
+const http = require('http');
 
 //instanciation du serveur
 var server = express();
@@ -16,7 +15,7 @@ server.use(bodyParser.json());
 // config of database THARWA
 //den1.mssql6.gear.host
 
-const sequelize = new Sequelize('THARWA', 'cnx', 'orca@2018', {
+const sequelize = new Sequelize('tharwa', 'cnx', 'orca@2018', {
   host: 'localhost',
   dialect: 'mssql',
   operatorsAliases: false,
@@ -34,7 +33,7 @@ const sequelize = new Sequelize('THARWA', 'cnx', 'orca@2018', {
 sequelize
     .authenticate()
     .then(() => {
-      console.log('Connection has been established successfully.');
+      console.log('Connection to database has been established successfully.');
       
     
     })
@@ -45,59 +44,113 @@ sequelize
 
 
 
+
+
+var serv2 = http.createServer(server).listen(8080,function (){
+   console.log("Serveur en écoute !");
+   console.log(__dirname)
+});
+
+server.get('/', function(req, res){
+   res.sendFile(__dirname + '/socketClient.html');
+});
+
+var io = require('socket.io').listen(serv2);
+var clientsConnectés = new Map()
+
+function notifier (){
+  if(clientsConnectés.get('meriem'))clientsConnectés.get('meriem').emit('notification','message de la notification')
+  console.log('notification envoyé') 
+}
+
+io.sockets.on('connection', function (socket) {
+  console.log('Un client se connect')
+
+   // connexion d'un client mobile
+   socket.on('connexion', function(token) {
+       tokenController(token, function(OauthResponse){
+        if (OauthResponse.statutCode == 200){
+          socket.id = OauthResponse.userId;
+          clientsConnectés.set(OauthResponse.userId,socket)
+          console.log('le client '+OauthResponse.userId+' est connecté !')
+        } else {
+          console.log('Client non identifié !')
+        }
+       });
+   });
+
+   
+    // deconnexion d'un client mobile
+    socket.on('deconnexion', function(token) { 
+      tokenController(token, function(OauthResponse){
+        if (OauthResponse.statutCode == 200){
+          if(socket.id == OauthResponse.userId ){
+            if(clientsConnectés.get(socket.id)){
+              clientsConnectés.delete(socket.id,socket)
+              console.log('le client '+socket.id+' est deconnecté !')
+            } else {
+              console.log('le client n\'existe pas !')
+            }
+          }
+        }
+       });
+    });
+
+});
+
 //Models
 const User = sequelize.import(__dirname + "/models/Users");
 const Client = sequelize.import(__dirname + "/models/Client");
 const Compte = sequelize.import(__dirname + "/models/Compte");
 const Virement = sequelize.import(__dirname + "/models/Virement");
 const Banque = sequelize.import(__dirname + "/models/Banque");
-const TarifCommission = sequelize.import(__dirname + "/models/TarifCommission");
+const TarifCommission=sequelize.import(__dirname + "/models/TarifCommission");
 const Commission = sequelize.import(__dirname + "/models/Commission");
-
+const Notification = sequelize.import(__dirname + "/models/Notification");
 
 //Acces aux données
 const compteAccess = require('./Data_access/Compte_access')(Compte,sequelize);
 
-//Controllers
-const fcts=require('./controleurs/fcts')(Compte,Client,sequelize,TarifCommission,Commission);
+//Controllers  
+const notificationController = require('./controleurs/notificationCtrl')(Notification,clientsConnectés,sequelize);
+
+const fcts=require('./controleurs/fcts')(Compte,Client,User,Virement,sequelize,TarifCommission,Commission);
 const tokenController = require('./controleurs/tokenCtrl');
-const usersController = require('./controleurs/usersCtrl')(User,sequelize);
+const usersController = require('./controleurs/usersCtrl')(User,Virement,sequelize);
+const VirementController = require('./controleurs/VirementCntrl')(Virement,Compte,User,Client,fcts,sequelize,notificationController);
+
 const clientController = require('./controleurs/clientCtrl')(Client,User,Compte,sequelize,fcts);
 
 const accountController = require('./controleurs/accountCtrl')(Client,Compte,compteAccess,sequelize);
 
-const VirementController = require('./controleurs/VirementCntrl')(Virement,Compte,User,Client,sequelize,fcts);
 const GestionnaireController = require('./controleurs/GestionnaireCntrl')(Virement,User,Banque,sequelize);
 
+
+
 //Routes
+const NotificationRoute = require('./routes/notificationRoutes')(express,tokenController,notificationController);
+server.use('/notification',NotificationRoute);
+
 const usersRoute = require('./routes/usersRoutes')(express,tokenController,usersController,clientController,accountController);
 server.use('/users',usersRoute);
 
-const accountsRoute = require('./routes/accountsRoutes')(express,tokenController,accountController);
+const accountsRoute = require('./routes/accountsRoutes')(express,tokenController,accountController,notificationController);
 server.use('/accounts',accountsRoute);
 
 const clientRoute = require('./routes/clientRoutes')(express,__dirname,tokenController,accountController,clientController);
 server.use('/clients',clientRoute);
 
 
-const VirementRoute = require('./routes/VirementRoute')(express,VirementController,tokenController);
+const VirementRoute = require('./routes/VirementRoute')(express,__dirname,VirementController,tokenController,usersController);
 server.use('/virement',VirementRoute);
 
 const GestionnaireRoute = require('./routes/GestionnaireRoute')(express,GestionnaireController,tokenController);
 server.use('/gestionnaire',GestionnaireRoute);
 
-//test 
-//const testFct = require('./test/testFct')(fcts);
-//cont accountFct = require('./test/testAccount')(compteAccess);
-//const clientTest  = require('./test/testClient')(clientController);
 
-server.listen(8080,function (){
+/*server.listen(8088,function (){
    console.log("Serveur en écoute !");
    console.log(__dirname)
-});
+});*/
 
 module.exports = server; // pour le test 
-
-
-
-

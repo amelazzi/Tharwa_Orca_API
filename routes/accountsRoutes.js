@@ -1,4 +1,4 @@
-module.exports = function(express,tokenController,accountController){
+module.exports = function(express,tokenController,accountController,notificationController){
    
     const router = express.Router();
 
@@ -47,6 +47,13 @@ router.put('/validate',(req,res) =>{
                
                 accountController.validateAccount(numCmpt,(response)=>{
                     if(response.statutCode == 200){
+                        accountController.getAccountOwner (numCmpt, (idUser)=>{
+                            if(idUser){
+                                notificationController.addNotificationCompte(idUser,0,1,(idNotification)=>{
+                                    notificationController.sendNotification(idUser,idNotification)     
+                                })
+                            }   
+                        });
                         res.status(200).json({'success' : 'account validated'});
                     } else {
                         res.status(response.statutCode).json({'error' : response.error});
@@ -82,6 +89,13 @@ router.put('/reject',(req,res) =>{
                
                 accountController.rejectAccount(numCmpt,(response)=>{
                     if(response.statutCode == 200){
+                        accountController.getAccountOwner (numCmpt, (idUser)=>{
+                            if(idUser){
+                                notificationController.addNotificationCompte(idUser,0,0,(idNotification)=>{
+                                    notificationController.sendNotification(idUser,idNotification)    
+                                })
+                            }   
+                        });
                         res.status(200).json({'success' : 'account rejected'});
                     } else {
                         res.status(response.statutCode).json({'error' : response.error});

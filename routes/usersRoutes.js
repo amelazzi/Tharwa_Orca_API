@@ -5,7 +5,7 @@ var upload = multer()
 module.exports = function(express,tokenController,usersController,clientController,accountController){
    
     const router = express.Router();
-    
+
 /*-----------------------------------------------------------------------------------------------------------------------*/   
 
 /*-------------------------------------      Service d'inscription du banquier      -------------------------------------*/
@@ -98,5 +98,3 @@ module.exports = function(express,tokenController,usersController,clientControll
 
     return router;
 }
-
-
