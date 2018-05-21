@@ -144,6 +144,8 @@ function CreateNewBanqueAccount(idClient,type,callback){
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 function validateAccount(numAccout,callback){
+    
+       
     Compte.findOne(
       {
         attributes:['Num','Etat','IdUser','TypeCompte'],
@@ -153,8 +155,11 @@ function validateAccount(numAccout,callback){
     
         if (account){
             if(account.Etat == 0){
-                account.update({
-                    Etat: 1
+                sequelize.query('Update Compte set Etat=1 where Num=$num',
+                {
+                      bind: {
+                             num:numAccout
+                            }
                 }).then(function() {
                     var type;
                     switch(account.TypeCompte)
