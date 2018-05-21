@@ -9,7 +9,7 @@ var upload = multer()
 var Codes = require('../ressources/codes');
 var Erreur_francais = require('../ressources/erreur_francais');
 //Routes
-module.exports = function(Virement,Compte,User,Client,fcts,sequeliz) {
+module.exports = function(Virement,Compte,User,Client,fcts,sequeliz,NotificaionController) {
 
 /*-----------------------------------------------------------------------------------------------------------------------*/   
 
@@ -164,7 +164,26 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
                             rep(response); 
                          }
                          else{
-                            console.log("siduzue")
+
+                            NotificaionController.addNotificationVirementEmis(iduseremmetteur,nomrecepteur,montant,1,(idNotification)=>{
+
+                                //envoi de notification mobile "Virement emis validé"
+                                notificationController.sendNotification(iduseremmetteur,idNotification)
+
+                                NotificaionController.addNotificationCommission(iduseremmetteur,1,0,montant,(idNotification)=>{
+
+                                    //envoi de notification mobile "Commission d'opération"
+                                    notificationController.sendNotification(iduseremmetteur,idNotification)
+
+                                    NotificaionController.addNotificationVirementRecu(idrecepteur,nomemmetteur,montant,(idNotification)=>{
+
+                                        //envoi de notification mobile "Virement recu"
+                                        notificationController.sendNotification(idrecepteur,idNotification)
+
+                                    })
+
+                                })
+                            })
                             response = {
                                 'statutCode' : Codes.code.codesucce, // success
                                 'Success': Erreur_francais.erreur_francais.vir_sansjustif_effetue     

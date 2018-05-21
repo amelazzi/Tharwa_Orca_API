@@ -2,7 +2,7 @@
 const datetime = require('node-datetime');
 
 //exports
-module.exports = function(Notification,sequelize) {
+module.exports = function(Notification,clientsConnectes,sequelize) {
 
 
 /*---------------------------------------------------------------------------------------------------------------------*/
@@ -455,10 +455,33 @@ function createNotificationMessage(idNotification,callback){
 
 }
 
+/*---------------------------------------------------------------------------------------------------------------------*/
+
+/*------------------------------- procedure pour envoyer une notification mobile à un client connecé-----------------*/   
+    
+/*---------------------------------------------------------------------------------------------------------------------*/
+
+function sendNotification(idUser,idNotification){
+
+    console.log("notification ajoutée à la BDD")
+    if(clientsConnectes.get(idUser)){
+
+        createNotificationMessage(idNotification,(notification)=>{
+        clientsConnectes.get(idUser).emit('notification',notification.message)
+        console.log("notification envoyée au client mobile")
+              });
+    } else {
+           console.log("Client offline. Notification non envoyée")
+    }
+
+
+}
+
+
 
 //exporter les procedure :
 return {addNotificationCompte,addNotificationVirementEntreSesComptes,addNotificationVirementEmis,
         addNotificationVirementRecu,addNotificationCommission,marquerNotificationLue,getUnreadNotifications,
-        createNotificationMessage};
+        createNotificationMessage,sendNotification};
 
 }    

@@ -1,4 +1,4 @@
-module.exports = function(express,tokenController,accountController,notificationController,clients){
+module.exports = function(express,tokenController,accountController,notificationController){
    
     const router = express.Router();
 
@@ -49,16 +49,8 @@ router.put('/validate',(req,res) =>{
                     if(response.statutCode == 200){
                         accountController.getAccountOwner (numCmpt, (idUser)=>{
                             if(idUser){
-                                notificationController.addNotificationCompte(idUser,0,1,(reponse)=>{
-                                    console.log("notification ajoutée à la BDD")
-                                    if(clients.get(idUser)){
-                                        notificationController.createNotificationMessage(reponse,(notification)=>{
-                                            clients.get(idUser).emit('notification',notification.message)
-                                            console.log("notification envoyée au client mobile")
-                                        });
-                                    } else {
-                                        console.log("Client offline. Notification non envoyée")
-                                    }     
+                                notificationController.addNotificationCompte(idUser,0,1,(idNotification)=>{
+                                    notificationController.sendNotification(idUser,idNotification)     
                                 })
                             }   
                         });
@@ -99,16 +91,8 @@ router.put('/reject',(req,res) =>{
                     if(response.statutCode == 200){
                         accountController.getAccountOwner (numCmpt, (idUser)=>{
                             if(idUser){
-                                notificationController.addNotificationCompte(idUser,0,0,(reponse)=>{
-                                    console.log("notification ajoutée à la BDD")
-                                    if(clients.get(idUser)){
-                                        notificationController.createNotificationMessage(reponse,(notification)=>{
-                                            clients.get(idUser).emit('notification',notification.message)
-                                            console.log("notification envoyée au client mobile")
-                                        });
-                                    } else {
-                                        console.log("Client offline. Notification non envoyée")
-                                    }     
+                                notificationController.addNotificationCompte(idUser,0,0,(idNotification)=>{
+                                    notificationController.sendNotification(idUser,idNotification)    
                                 })
                             }   
                         });

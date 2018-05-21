@@ -44,32 +44,6 @@ sequelize
 
 
 
-//Models
-const User = sequelize.import(__dirname + "/models/Users");
-const Client = sequelize.import(__dirname + "/models/Client");
-const Compte = sequelize.import(__dirname + "/models/Compte");
-const Virement = sequelize.import(__dirname + "/models/Virement");
-const Banque = sequelize.import(__dirname + "/models/Banque");
-const TarifCommission=sequelize.import(__dirname + "/models/TarifCommission");
-const Commission = sequelize.import(__dirname + "/models/Commission");
-const Notification = sequelize.import(__dirname + "/models/Notification");
-
-//Acces aux données
-const compteAccess = require('./Data_access/Compte_access')(Compte,sequelize);
-
-//Controllers                                         
-const fcts=require('./controleurs/fcts')(Compte,Client,User,Virement,sequelize,TarifCommission,Commission);
-const tokenController = require('./controleurs/tokenCtrl');
-const usersController = require('./controleurs/usersCtrl')(User,Virement,sequelize);
-const VirementController = require('./controleurs/VirementCntrl')(Virement,Compte,User,Client,fcts,sequelize);
-
-const clientController = require('./controleurs/clientCtrl')(Client,User,Compte,sequelize,fcts);
-
-const accountController = require('./controleurs/accountCtrl')(Client,Compte,compteAccess,sequelize);
-
-const GestionnaireController = require('./controleurs/GestionnaireCntrl')(Virement,User,Banque,sequelize);
-
-const notificationController = require('./controleurs/notificationCtrl')(Notification,sequelize);
 
 
 var serv2 = http.createServer(server).listen(8080,function (){
@@ -82,10 +56,10 @@ server.get('/', function(req, res){
 });
 
 var io = require('socket.io').listen(serv2);
-var clients = new Map()
+var clientsConnectés = new Map()
 
 function notifier (){
-  if(clients.get('meriem'))clients.get('meriem').emit('notification','message de la notification')
+  if(clientsConnectés.get('meriem'))clientsConnectés.get('meriem').emit('notification','message de la notification')
   console.log('notification envoyé') 
 }
 
@@ -97,7 +71,7 @@ io.sockets.on('connection', function (socket) {
        tokenController(token, function(OauthResponse){
         if (OauthResponse.statutCode == 200){
           socket.id = OauthResponse.userId;
-          clients.set(OauthResponse.userId,socket)
+          clientsConnectés.set(OauthResponse.userId,socket)
           console.log('le client '+OauthResponse.userId+' est connecté !')
         } else {
           console.log('Client non identifié !')
@@ -111,8 +85,8 @@ io.sockets.on('connection', function (socket) {
       tokenController(token, function(OauthResponse){
         if (OauthResponse.statutCode == 200){
           if(socket.id == OauthResponse.userId ){
-            if(clients.get(socket.id)){
-              clients.delete(socket.id,socket)
+            if(clientsConnectés.get(socket.id)){
+              clientsConnectés.delete(socket.id,socket)
               console.log('le client '+socket.id+' est deconnecté !')
             } else {
               console.log('le client n\'existe pas !')
@@ -124,6 +98,34 @@ io.sockets.on('connection', function (socket) {
 
 });
 
+//Models
+const User = sequelize.import(__dirname + "/models/Users");
+const Client = sequelize.import(__dirname + "/models/Client");
+const Compte = sequelize.import(__dirname + "/models/Compte");
+const Virement = sequelize.import(__dirname + "/models/Virement");
+const Banque = sequelize.import(__dirname + "/models/Banque");
+const TarifCommission=sequelize.import(__dirname + "/models/TarifCommission");
+const Commission = sequelize.import(__dirname + "/models/Commission");
+const Notification = sequelize.import(__dirname + "/models/Notification");
+
+//Acces aux données
+const compteAccess = require('./Data_access/Compte_access')(Compte,sequelize);
+
+//Controllers  
+const notificationController = require('./controleurs/notificationCtrl')(Notification,clientsConnectés,sequelize);
+
+const fcts=require('./controleurs/fcts')(Compte,Client,User,Virement,sequelize,TarifCommission,Commission);
+const tokenController = require('./controleurs/tokenCtrl');
+const usersController = require('./controleurs/usersCtrl')(User,Virement,sequelize);
+const VirementController = require('./controleurs/VirementCntrl')(Virement,Compte,User,Client,fcts,sequelize,notificationController);
+
+const clientController = require('./controleurs/clientCtrl')(Client,User,Compte,sequelize,fcts);
+
+const accountController = require('./controleurs/accountCtrl')(Client,Compte,compteAccess,sequelize);
+
+const GestionnaireController = require('./controleurs/GestionnaireCntrl')(Virement,User,Banque,sequelize);
+
+
 
 //Routes
 const NotificationRoute = require('./routes/notificationRoutes')(express,tokenController,notificationController);
@@ -132,7 +134,7 @@ server.use('/notification',NotificationRoute);
 const usersRoute = require('./routes/usersRoutes')(express,tokenController,usersController,clientController,accountController);
 server.use('/users',usersRoute);
 
-const accountsRoute = require('./routes/accountsRoutes')(express,tokenController,accountController,notificationController,clients);
+const accountsRoute = require('./routes/accountsRoutes')(express,tokenController,accountController,notificationController);
 server.use('/accounts',accountsRoute);
 
 const clientRoute = require('./routes/clientRoutes')(express,__dirname,tokenController,accountController,clientController);
