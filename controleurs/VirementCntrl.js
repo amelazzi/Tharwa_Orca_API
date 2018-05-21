@@ -37,7 +37,7 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
                 if(err){
                     console.log(err)
                     response = {
-                        'statutCode' : Codes.code.codenotfound, // success
+                        'statutCode' : Codes.code.NOT_FOUND, // success
                         'error': Erreur_francais.erreur_francais.commissioninexistante         
                      }
                     rep(response); 
@@ -68,19 +68,19 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
                  else
                  {
                     response = {
-                        'statutCode' : Codes.code.codenotfound, // success
+                        'statutCode' : Codes.code.NOT_FOUND, // success
                         'error': Erreur_francais.erreur_francais.idnonexistant        
                      }
                     rep(response); 
                  }
             })
         },
-        GetNomjEmmetteur(callback){ // récupération nom emmetteur
+        GetNomEmmetteur(callback){ // récupération nom emmetteur
             fcts.GetUser(iduseremmetteur,function(err, nomEmmetteur){
                 if (err){
                     console.log(err)
                     response = {
-                        'statutCode' : Codes.code.codenotfound, // success
+                        'statutCode' : Codes.code.NOT_FOUND, // success
                         'error': Erreur_francais.erreur_francais.nonemmetteurnonexistant        
                     }
                     rep(response); 
@@ -99,7 +99,7 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
                 if(err){
                     console.log(err)
                     response = {
-                        'statutCode' : Codes.code.codenotfound, // success
+                        'statutCode' : Codes.code.NOT_FOUND, // success
                         'error': Erreur_francais.erreur_francais.numcompteemmetteurnonexistant
                     }
                     rep(response); 
@@ -113,7 +113,7 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
                         else{
                             if(comptebalance.Num.substr(0, 3)!='THW'){
                                 response = {
-                                    'statutCode' : Codes.code.codenotfound, // success
+                                    'statutCode' : Codes.code.NOT_FOUND, // success
                                     'error': Erreur_francais.erreur_francais.emmetteurnonTHARWA
                                 }
                                 rep(response); 
@@ -121,7 +121,7 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
                             }
                             else{
                                 response = {
-                                    'statutCode' : Codes.code.codenotfound, // success
+                                    'statutCode' : Codes.code.NOT_FOUND, // success
                                     'error': Erreur_francais.erreur_francais.balanceinsuffisante
                                 }
                                 rep(response); 
@@ -138,7 +138,7 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
                 if (err){     
                     console.log(err)           
                     response = {
-                        'statutCode' : Codes.code.codenotfound, // success
+                        'statutCode' : Codes.code.NOT_FOUND, // success
                         'error': Erreur_francais.erreur_francais.nomdestinatairenonexistant         
                     }
                     rep(response); 
@@ -162,7 +162,7 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
                         if (err){
                             console.log(err)
                              response = {
-                                'statutCode' : Codes.code.codenotfound, // success
+                                'statutCode' : Codes.code.NOT_FOUND, // success
                                 'error': Erreur_francais.erreur_francais.vir_sansjustif_noneffetue         
                             }
                             rep(response); 
@@ -193,7 +193,7 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
                                 })
                             })
                             response = {
-                                'statutCode' : Codes.code.codesucce, // success
+                                'statutCode' : Codes.code.SUCCESS, // success
                                 'Success': Erreur_francais.erreur_francais.vir_sansjustif_effetue     
                             }
                             rep(response); 
@@ -208,14 +208,14 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
                         if (err){  
                             console.log(err)                      
                             response = {
-                                'statutCode' : Codes.code.codenotfound, // success
+                                'statutCode' : Codes.code.NOT_FOUND, // success
                                 'error': Erreur_francais.erreur_francais.vir_justif_noneffetue         
                             }
                             rep(response); 
                          }
                          else{
                             response = {
-                                'statutCode' : Codes.code.codesucce, // success
+                                'statutCode' : Codes.code.SUCCESS, // success
                                 'Success': Erreur_francais.erreur_francais.vir_justif_effetue      
                             }
                             rep(response)
@@ -226,7 +226,7 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
                 }
                 else{
                     response = {
-                        'statutCode' : Codes.code.codenotfound, // success
+                        'statutCode' : Codes.code.NOT_FOUND, // success
                         'Success': Erreur_francais.erreur_francais.justificatifmanquant        
                     }
                     rep(response);
@@ -490,7 +490,7 @@ function validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,rep
                 if(err){
                     console.log("tes4")
                     response = {
-                        'statutCode' :  Codes.code.codenotfound, // success
+                        'statutCode' :  Codes.code.NOT_FOUND, // success
                         'error': Erreur_francais.erreur_francais.montantnontrouve         
                      }
                     rep(response); 
@@ -510,7 +510,7 @@ function validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,rep
                 console.log("tes1")
                 if(err){console.log("tes2")
                     response = {
-                        'statutCode' : Codes.code.codenotfound, // success
+                        'statutCode' : Codes.code.NOT_FOUND, // success
                         'error': "Erreur_francais.erreur_francais.commissioninexistante   "        
                      }
                     rep(response); 
@@ -530,14 +530,14 @@ function validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,rep
                 if (err){
                    
                     response = {
-                        'statutCode' : Codes.code.codenotfound, 
+                        'statutCode' : Codes.code.NOT_FOUND, 
                         'error': Erreur_francais.erreur_francais.virementnonreussi          
                     }
                     rep(response); 
                  }
                  else{
                     response = {
-                        'statutCode' : Codes.code.codesucce, // success
+                        'statutCode' : Codes.code.SUCCESS, // success
                         'Success': Erreur_francais.erreur_francais.virementreussi    
                     }
                     rep(response); 
@@ -556,7 +556,7 @@ function getJustificatif (userId,codevirement,callback){
 
         if(JustificatifFound){
             response = {
-                'statutCode' : Codes.code.codesucce, // success
+                'statutCode' : Codes.code.SUCCESS, // success
                 'NomEmetteur':JustificatifFound.NomEmetteur,
                 'CompteEmmetteur': JustificatifFound.CompteEmmetteur,
                 'NomDestinataire' : JustificatifFound.NomDestinataire,
@@ -566,7 +566,7 @@ function getJustificatif (userId,codevirement,callback){
             callback(response);
         }else {
             response = {
-                'statutCode' : Codes.code.codenotfound, //not Found
+                'statutCode' : Codes.code.NOT_FOUND, //not Found
                 'error':Erreur_francais.erreur_francais.justificatifnontrouve      
             }
             callback(response);
@@ -574,7 +574,7 @@ function getJustificatif (userId,codevirement,callback){
     }).catch((err)=>{
         console.log(err);
         response = {
-            'statutCode' : Codes.code.servererror, 
+            'statutCode' : Codes.code.INTERNAL_ERROR, 
             'error':Erreur_francais.erreur_francais.erreurservervirement       
         }
         callback(response);

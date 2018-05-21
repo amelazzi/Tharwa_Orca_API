@@ -75,3 +75,25 @@ describe('/Post Virement entre ces comptes ', () => {
   });
 });
 
+/* TEST VIREMENT VERS UN AUTRE CLIENT THARWA */
+describe('/virement/VirementClientTh ', () => {
+  it('il deverai detecter que le justificatif manquat', (done) => {
+    chai.request(server)
+        .post('/virement/VirementClientTh')
+        .set({'token':'SkCWpa8TzBdFXVP9SQS21WgJwFJZfXJpxDQqIiq5v25LBXZobWnfNXUqlByuEJ1mhJhVubl04b2m2DZbpzqmDWn9rjDU4hHDMiKi9Drr9buSQXNduHrOMsyrXCYXhj6fZt5oczRso0BQlSeKY5BJRLjQt4Cm0bgPxN7EMbHo27HOaZrhmMXQDpErwoPRGvLHYvy4aJlxs1pJl5SDo6ulGOTPEEvJvR1QsVJe0Q18XEBWW4gR2H9pcc1tRwVzDrs'})
+        .send({
+          'Montant': '300000',
+          'CompteDestinataire': 'THW000004DZD',
+          'Motif': 'JUSTIFICATIF DEMO',
+          //'avatar':'virement'
+        })
+        .end((err, res) => {
+            res.should.have.status(404);
+            
+          
+          done();
+        });
+  });
+});
+
+
