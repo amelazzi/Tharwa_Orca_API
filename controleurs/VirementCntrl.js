@@ -7,6 +7,7 @@ var async = require('async-if-else')(require('async'));
 var multer  = require('multer')
 var upload = multer()
 var Codes = require('../ressources/codes');
+const sendgrid = require('../Utils/sendgrid');
 var Erreur_francais = require('../ressources/erreur_francais');
 //Routes
 module.exports = function(Virement,Compte,User,Client,fcts,sequeliz,NotificaionController) {
@@ -259,7 +260,7 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
                 rep(response); 
              }else{
                 emmeteur=Compte1.Num;
-                if (Compte1.Balance>Montant){ // verifier si le montant à virer ne depasse pas la balance du compte
+                if (Compte1.Balance<Montant){ // verifier si le montant à virer ne depasse pas la balance du compte
                     response = {
                         'statutCode' : 403, 
                         'error': 'Balance insuffisante'          

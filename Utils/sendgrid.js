@@ -5,8 +5,13 @@ const Nexmo = require('nexmo');
 
 
 var transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
+  transport: "SMTP",
+    host: "smtp.gmail.com",
+    secureConnection: false,
+   
+    requiresAuth: true,
+    domains: ["gmail.com", "googlemail.com"],
+    auth: {
     user: 'tharwa.ebank@gmail.com',
     pass: 'orca@2018'
   }

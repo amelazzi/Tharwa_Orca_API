@@ -82,13 +82,14 @@ router.get('/avatar',(req,res) =>{
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
-router.get('/historique',(req,res) =>{
+router.post('/historique',(req,res) =>{
+    var type=req.body.type
 
     const token = req.headers['token']; //récupérer le Access token
            
     tokenController(token, function(OauthResponse){
         if (OauthResponse.statutCode == 200){
-            clientController.historique(OauthResponse.userId,(response)=>{
+            clientController.historique(OauthResponse.userId,type,(response)=>{
                if(response.statutCode == 200){
                 res.status(200).json({'historique': response.historique});
                } else {
