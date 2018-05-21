@@ -1,5 +1,5 @@
 module.exports = function(express,chemin,tokenController,accountController,clientController){
-   
+
     const router = express.Router();
 
 /*-----------------------------------------------------------------------------------------------------------------------*/   
@@ -110,6 +110,7 @@ router.get('/historique',(req,res) =>{
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
 router.post('/tauxChange',(req,res) =>{
+    console.log('taux de change');
 
     const token = req.headers['token']; //récupérer le Access token
     var b=req.body.base

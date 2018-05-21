@@ -71,7 +71,7 @@ chai.use(chaiHttp);
 }); */
 
 
-describe('valider un compte ', () => {
+/*describe('valider un compte ', () => {
     it('it should validate an account with state 0 ', (done) => {
       chai.request(server)
           .put('/accounts/validate')
@@ -103,6 +103,6 @@ describe('valider un compte ', () => {
             done();
           });
     });
-  }); 
+  }); */
   
 

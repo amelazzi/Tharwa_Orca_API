@@ -121,12 +121,6 @@ function updateProfil(name,tel,iduser,callback){
         callback(response)
         
            });
-           
-    
-
-
-    
-
 }
 
 return {listBanque,listBanquiers,listVirementEx,updateProfil};

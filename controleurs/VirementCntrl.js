@@ -1,199 +1,227 @@
-
 //imports
 var crypto = require('crypto');
 var http = require("http");
 const request = require('request');
 var tokenVerifier = require('./tokenCtrl');
-//var conversion = require('./fctCtrl');
-var async = require('async-if-else')(require('async'));
-//var async = require('async-if-else');
+var async = require('async-if-else')(require('async')); 
+var multer  = require('multer')
+var upload = multer()
+var Codes = require('../ressources/codes');
+var Erreur_francais = require('../ressources/erreur_francais');
 //Routes
-module.exports = function(Virement,Compte,User,Client,sequelize,fcts) {
+module.exports = function(Virement,Compte,User,Client,fcts,sequeliz) {
 
 /*-----------------------------------------------------------------------------------------------------------------------*/   
 
 /*----------------------------------------Procedure pour effectue un virement vers un autre client THARWA----------------*/
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
+function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep){
+    console.log(" id user emmetteur "+iduseremmetteur)
+    console.log(" Montant "+montant+ "chemin "+ imagePath)
+    console.log("Compte destinataire "+Comptedest)
+    var residcomm ={}
+    var nomemmetteur={}
+    var pourcentagecomm={}
+    var numcompteemmetteur={}
+    var idrecepteur={}
+    var nomrecepteur={}
+    var balanceemetteur={}
+    if(Comptedest.substr(0, 3)=='THW'){ // Vérifier si le compte destinaire du type THARWA
 
-function TranferClientTH(req, res){
-
-
-    var montant=req.body.Montant;
-    var Justificatif = req.body.Justificatif;
-    var dest=req.body.CompteDestinataire;//numero de compte de destinataire
-    var Motif=req.body.Motif;
-
-
-//Verification de non null
-    if(montant == null || dest == null ||Motif==null){
-        return res.status(400).json({'error':'missing parameters'}); //bad request
-    }
-   // const token="EWVkyX9tlGFag9uqkMuW7JWiz9UGRfWnHtPQd3EL7cbfopJTKt15xEZc5ul0VkPyycMx3JGgDLT988tQNp1LwkBS0LuZpmSyWcqQpdsYU6W05OcfITrHHoqVLpIxeRWWOcYkcKYcHKdfI7uo0DtAEtrV5Z16Zn8BDf2Qfbxpog7ptRdJWk3tVZqPveYTYYSXzDQdRyb6j2kN9FPXN00wl12vqX9JewEDk7ZXiNCGxffKqhc4ytjsUHUa0TI944p";
-   const token = req.headers['token']; //récupérer le Access token
-    tokenVerifier(token, function(response){   //vérifier le access token auprès du serveur d'authentification      
     
-    if (response.statutCode == 200){ //si le serveur d'authentification répond positivement (i.e: Access token valide)
-            var id = response.userId; //recupérer le id de l'utilisateur
-            const value = sequelize.escape(id);
-            Compte.findOne({ // Vérification de lexistance du numero de compte destinataire
-                attributes:['Num'],
-                where:{'Num' :dest} })
-                .then(function(CompteFound){
-                    if(CompteFound){
-                            Compte.findOne({//vérification de l'éxistance du numero de compte de lemetteur
-                                attributes:['Num','Balance'],
-                                where:{'IdUser' :id} })
-                                .then(function(CompteFoundsent){
-                                    if(CompteFoundsent){
-                                        User.findOne({// recupération du nom de l'emmeteur après vérification de l'éxistance
-                                            attributes:['username'],
-                                            where:{'userId' :id} })
-                                            .then(function(usersend){
-                                                if(usersend){
-                                                    Compte.findOne({// recupération de l'ID du récépteur après vérification de l'éxistance
-                                                    attributes:['IdUser'],
-                                                    where:{'Num' :dest} })
-                                                    .then(function(IDreceiver){
-                                                        if(IDreceiver){
-                                                            User.findOne({// recupération de nom du récépteur après vérification de l'éxistance
-                                                            attributes:['username'],
-                                                            where:{'userId' :IDreceiver.IdUser} })
-                                                            .then(function(Nomreceiver){
-                                                                if(Nomreceiver){   
-                                                                    if (montant<CompteFoundsent.Balance &&  dest.substr(0,3)=='THW'){
-                                                                        sequelize.query('exec GetNextIdCommission').spread((results, metadata) => {
-                                                                        var rows = JSON.parse(JSON.stringify(results[0]));
-                                                                        idcom = parseInt(rows.id);
-                                                                        console.log("Id de la commission "+idcom); 
-
-
-                                                                        sequelize.query('exec GetPourcentageCommissionVirTH').spread((results, metadata) => {
-                                                                        var rows = JSON.parse(JSON.stringify(results[0]));
-                                                                        pourc = parseInt(rows.id);
-                                                                        console.log("Le pourcentage de la commission "+pourc); 
-                                                                            
-
-                                                                        if(Justificatif==null){                                                                                                                                                                                                                             
-                                                                            // Y a pas de justificatif à fournir dans la t ransaction sera validée directement
-                                                                            sequelize.query('exec AddVirementClientTharwa $Montant, $CompteDestinataire, $CompteEmmetteur, $Motif, $NomEmetteur, null, $Statut, $NomDestinataire,$pourcentage,$commission',
-                                                                            {
-                                                                                bind: {
-                                                                                        Montant: montant, 
-                                                                                        CompteDestinataire: dest,   //Compte destination                                                                                                                                                                                                                      
-                                                                                        CompteEmmetteur:CompteFoundsent.Num,    //Compte emetteur 
-                                                                                        Motif:Motif,    //Motif d'envoi                                                               
-                                                                                        NomEmetteur:usersend.username, //Nom emetteur
-                                                                                        Statut:1,
-                                                                                        NomDestinataire:Nomreceiver.username, // Nom recepteur
-                                                                                        pourcentage:pourc,
-                                                                                        commission:idcom
-                                                                                     }
-                                                                                     
-                                                                            }).then((response) => {
-                                                                                return( res.status(200).json({'succe':'Virement sans justificatif effectué avec succe'}));
-                                                                            
-                                                                             }).catch(err => {return(res.status(401).json({'error': 'Virement sans justificatif non effectue'}))});                                                                     
-                                                                                                                                   
-                                                                                                                                    
-                                                                       }
-                                                                        else{   
-                                                                            var cmptdest=dest;
-                                                                            var emetteur=CompteFoundsent.Num;
-                                                                            sequelize.query('exec AddVirementClientTharwaEnAttente $Montant, $CompteDestinataire, $CompteEmmetteur, $Motif, $NomEmetteur,$justificatif, null,  $NomDestinataire,$pourcentage,$commission',
-                                                                            {
-                                                                                bind: {
-                                                                                        CompteDestinataire: dest,   //Compte destination  
-                                                                                        Montant: montant,
-                                                                                        justificatif :Justificatif,                                                              
-                                                                                        CompteEmmetteur:emetteur,    //Compte emetteur 
-                                                                                        Motif:Motif,    //Motif d'envoi                                                               
-                                                                                        NomEmetteur:usersend.username, //Nom emetteur
-                                                                                        NomDestinataire:Nomreceiver.username ,// Nom recepteur
-                                                                                        pourcentage:pourc,
-                                                                                        commission:idcom
-                                                                            }}).then((response) => {
-                                                                                return( res.status(200).json({'succe':'Virement avec justificatif et notification effectué avec succe'}));
-                                                                            
-                                                                             }).catch(err => {return(res.status(401).json({'error': 'Virement avec justificatif et notification non effectue'}))});                                                                     
-                                                                                                                                                 
-                                                                         
-                                                                        }
-                                                                    })
-                                                                    })
-                                                                   
-                                                                    } 
-                                                                    else{
-                                                                        return (res.status(403).json({'error': 'Balance insuffisante'}))
-                                                                    }                                                           
-                                                                    
-                                                                }
-                                                                else{ 
-                                                                   return res.status(404).json({'error':'Le recepteur ne contient pas de nom lorsquil a etait enregistre'});
-                                                                }
-                                                            })
-                                                            .catch(function(err){
-                                                                //Si une erreur interne au serveur s'est produite :
-                                                                 res.status(500).json({'error':'peut pas récuperer le nom du recepteur'}); 
-                                                                 console.log(err);
-                                                            });
-                                                        }
-                                                        else{ 
-                                                           return res.status(404).json({'error':'le recepteur n a pas de mail'});
-                                                        }   
-        
-                                                    })
-                                                    .catch(function(err){
-                                                        //Si une erreur interne au serveur s'est produite :
-                                                         res.status(500).json({'error':'peut pas récuperer le mail du recepteur'}); 
-                                                         console.log(err);
-                                                    });
-
-                                                }
-                                                else{ console.log("Le nom de lemetteur inexistant");
-                                                    return res.status(404).json({'error':'Le nom de lemetteur inexistant'});
-                                                }
-                                            })
-                                            .catch(function(err){
-                                                //Si une erreur interne au serveur s'est produite :
-                                                 res.status(500).json({'error':'peut pas vérifier le nom de lemetteur'}); 
-                                                 console.log(err);
-                                            });
-                                    
-                                    }
-                                    else{ console.log("Le compte de l\'emetteur inexistant");
-                                        return res.status(404).json({'error':'Le compte de l\'emetteur inexistant'});
-                                    }
-                                })
-                                .catch(function(err){
-                                    //Si une erreur interne au serveur s'est produite :
-                                     res.status(500).json({'error':'peut pas vérifier le numero de compte lemetteur'}); 
-                                     console.log(err);
-                                });
-                                 
-                    }
-                    else{  console.log("Le compte de destination inexistant");
-                        return res.status(404).json({'error':'Le compte de destination inexistant'});
-                    }
+    async.series({ 
+         
+       pourcentagecommission(callback){//next commission
+            fcts.GetPourcentageCommission(4,function(err,pourcentage){
+                if(err){
+                    response = {
+                        'statutCode' : Codes.code.codenotfound, // success
+                        'error': Erreur_francais.erreur_francais.commissioninexistante         
+                     }
+                    rep(response); 
+                }
+                else {
+                    pourcentagecomm=pourcentage // pourcentagecomm
+                    callback()
+                }
+                                
             })
-            .catch(function(err){ console.log("peut pas vérifier le numero de compte destination");
-                return res.status(500).json({'error':'peut pas vérifier le numero de compte destination'}); //interne error
-                console.log(err);
+        },
+
+        getnextidcommission(callback){
+            fcts.GetNextIdCommission(function(idcoomc){ // paramètre de retour
+                residcomm=idcoomc //residcomm
+                callback()
+            })
+        },
+
+        getidudercompte(callback){ // récupération de l'ID qui est l'email de destinataire
+            fcts.getIdUser(Comptedest, function(err,comte1){
+                if (comte1)
+                {
+                    idrecepteur=comte1.IdUser
+                    console.log("id recepterur est "+idrecepteur)
+                    callback()
+                 }
+                 else
+                 {
+                    response = {
+                        'statutCode' : Codes.code.codenotfound, // success
+                        'error': Erreur_francais.erreur_francais.idnonexistant        
+                     }
+                    rep(response); 
+                 }
+            })
+        },
+        GetNomjEmmetteur(callback){ // récupération nom emmetteur
+            fcts.GetUser(iduseremmetteur,function(err, nomEmmetteur){
+                if (err){
+                    response = {
+                        'statutCode' : Codes.code.codenotfound, // success
+                        'error': Erreur_francais.erreur_francais.nonemmetteurnonexistant        
+                    }
+                    rep(response); 
+                 }
+                 else{
+                    nomemmetteur= nomEmmetteur.Nom+' '+nomEmmetteur.Prenom
+                    console.log("le nom de l emetteur est "+ nomemmetteur)
+                    callback()
+                 }
+
+            })
+        },  
+
+        getCompteBalancee(callback){ // recupération numéro compte emmetteur
+            fcts.GetCompte(iduseremmetteur,0,function(err,comptebalance){
+                if(err){
+                    response = {
+                        'statutCode' : Codes.code.codenotfound, // success
+                        'error': Erreur_francais.erreur_francais.numcompteemmetteurnonexistant
+                    }
+                    rep(response); 
+                    }
+                    else{
+                        
+                        if ((comptebalance.Num.substr(0, 3)=='THW')&&(comptebalance.Balance>montant)){
+                        numcompteemmetteur=comptebalance.Num  
+                        console.log("test1"+numcompteemmetteur)                 
+                        callback()
+                        }
+                        else{
+                            if(comptebalance.Num.substr(0, 3)!='THW'){
+                                response = {
+                                    'statutCode' : Codes.code.codenotfound, // success
+                                    'error': Erreur_francais.erreur_francais.emmetteurnonTHARWA
+                                }
+                                rep(response); 
+
+                            }
+                            else{
+                                response = {
+                                    'statutCode' : Codes.code.codenotfound, // success
+                                    'error': Erreur_francais.erreur_francais.balanceinsuffisante
+                                }
+                                rep(response); 
+
+                            }
+                       
+                        }
+                    
+                }
+            })            
+        },    
+        GetNomDestinataire(callback){ // récupération nom destinataire
+            fcts.GetUser(idrecepteur,function(err, usernamee){
+                if (err){                
+                    response = {
+                        'statutCode' : Codes.code.codenotfound, // success
+                        'error': Erreur_francais.erreur_francais.nomdestinatairenonexistant         
+                    }
+                    rep(response); 
+                 }
+                 else{
+                    nomrecepteur= usernamee.Nom+' '+usernamee.Prenom
+                    console.log("le nom du recepteur est "+nomrecepteur)
+                    callback()
+                 }
+    
             });
-}
-})
+        },     
+       
+        function(callback){
+            console.log("le montant est "+ montant + "le compte destinataire est "+Comptedest+ " numero compte emetteur"+numcompteemmetteur+ " Motif est "+Motif +nomemmetteur+nomrecepteur+pourcentagecomm+'commision '+residcomm+ "le chemin est "+imagePath);
+            
+           if (montant<200000){
+
+                    fcts.AddVirementClientTharwa(montant,Comptedest,numcompteemmetteur,Motif,nomemmetteur,nomrecepteur,pourcentagecomm,residcomm,function(err,res){
+                        
+                        if (err){
+                             response = {
+                                'statutCode' : Codes.code.codenotfound, // success
+                                'error': Erreur_francais.erreur_francais.vir_sansjustif_noneffetue         
+                            }
+                            rep(response); 
+                         }
+                         else{
+                            console.log("siduzue")
+                            response = {
+                                'statutCode' : Codes.code.codesucce, // success
+                                'Success': Erreur_francais.erreur_francais.vir_sansjustif_effetue     
+                            }
+                            rep(response); 
+                         }
+                    
+                })
+            }
+            else{
+                console.log("teste2")
+                if ((montant>=200000) &&(imagePath.substr(0,13 )=='justificatifs')){
+                    fcts.AddVirementClientTharwaEnAttente(montant,Comptedest,numcompteemmetteur,Motif,nomemmetteur,imagePath,nomrecepteur,pourcentagecomm,residcomm,function(err,res){
+                        if (err){                        
+                            response = {
+                                'statutCode' : Codes.code.codenotfound, // success
+                                'error': Erreur_francais.erreur_francais.vir_justif_noneffetue         
+                            }
+                            rep(response); 
+                         }
+                         else{
+                            response = {
+                                'statutCode' : Codes.code.codesucce, // success
+                                'Success': Erreur_francais.erreur_francais.vir_justif_effetue      
+                            }
+                            rep(response)
+                         }
+                    
+                })
+
+                }
+                else{
+                    response = {
+                        'statutCode' : Codes.code.codenotfound, // success
+                        'Success': Erreur_francais.erreur_francais.justificatifmanquant        
+                    }
+                    rep(response);
+                }
+              
+            }//fin funtion
+        } 
+    
+
+
+    })
 
 }
+}
+
+
 /*-----------------------------------------------------------------------------------------------------------------------*/   
 
 /*----------------------------------------Procedure pour effectue un virement entre les comptes du client------------------------------------*/
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
-    console.log("type1",Type1)
-    console.log("type2",Type2)
-    console.log("montant",Montant)
-    console.log("motif",Motif)
+    
    
     var  emmeteur ={};
     var destinataire ={};
@@ -207,12 +235,12 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
             if (err){
                 response = {
                     'statutCode' : 404, 
-                    'error': 'Compte emmeteur non existant'          
+                    'error': 'Compte emmeteur non existant ou bloqué'          
                 }
                 rep(response); 
              }else{
                 emmeteur=Compte1.Num;
-                if (Compte1.Balance<Montant){ // verifier si le montant à virer ne depasse pas la balance du compte
+                if (Compte1.Balance>Montant){ // verifier si le montant à virer ne depasse pas la balance du compte
                     response = {
                         'statutCode' : 403, 
                         'error': 'Balance insuffisante'          
@@ -229,7 +257,7 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
                 if (err){
                    response = {
                        'statutCode' : 404, // success
-                       'error': 'Compte destinataire non existant'          
+                       'error': 'Compte destinataire non existant ou bloqué'          
                    }
                    rep(response); 
                 }else{
@@ -260,7 +288,7 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
              }
              ,
              idcommission(callback){ // recupere l'id de commission generer par le virement 
-             fcts.getNextIdComm(function(idc){
+             fcts.getNextIdComm(1,function(idc){
                 idcom=idc;
                 callback();
            })
@@ -278,6 +306,11 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
                             }
                             rep(response); 
                         }else{
+                            fcts.MontantCommission(idcom,function(err,montantcom){
+                                sendgrid.sendEmail(iduser,"Virement THARWA","Un virement de votre compte courant vers votre compte devise Euro avec un montant de "+ Montant + "Da a été effectué avec succès. \n Une commission de : "+montantcom+" Da a été retirée.");
+
+                            });
+
                             response = {
                                 'statutCode' : 200, //succe
                                 'succe': 'Virement  de votre Compte courant vers le Compte devise euro effectue avec succe'          
@@ -297,6 +330,10 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
                         }
                         rep(response); 
                     }else{
+                        fcts.MontantCommission(idcom,function(err,montantcom){
+                            sendgrid.sendEmail(iduser,"Virement THARWA","Un virement de votre compte courant vers votre compte devise Dollar avec un montant de "+ Montant + "Da a été effectué avec succès. \n Une commission de : "+montantcom+" Da a été retirée.");
+
+                        });
                         response = {
                             'statutCode' : 200, //succe
                             'succe': 'Virement  de votre Compte courant vers le Compte devise dollar effectue avec succe'          
@@ -315,6 +352,10 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
                             }
                             rep(response); 
                         }else{
+                            fcts.MontantCommission(idcom,function(err,montantcom){
+                                sendgrid.sendEmail(iduser,"Virement THARWA","Un virement de votre compte devise Euro vers votre compte courant avec un montant de "+ Montant + " € a été effectué avec succès. \n Une commission de : "+montantcom+" €  a été retirée.");
+    
+                            });
                             response = {
                                 'statutCode' : 200, //succe
                                 'succe': 'Virement  de votre Compte devise euro vers le Compte courant effectue avec succe'          
@@ -333,6 +374,10 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
                                 }
                                 rep(response); 
                             }else{
+                                fcts.MontantCommission(idcom,function(err,montantcom){
+                                    sendgrid.sendEmail(iduser,"Virement THARWA","Un virement de votre compte devise Dollar vers votre compte courant avec un montant de "+ Montant + " $ a été effectué avec succès. \n Une commission de : "+montantcom+" $ a été retirée.");
+        
+                                });
                                 response = {
                                     'statutCode' : 200, //succe
                                     'succe': 'Virement  de votre Compte devise dollar vers le Compte courant effectue avec succe'          
@@ -351,6 +396,7 @@ function Virement_local(iduser,Montant,Type1,Type2,Motif,rep){
                                 }
                                 rep(response); 
                             }else{
+                                sendgrid.sendEmail(iduser,"VirementTHARWA","Le virement entre votre courant et votre compte epargne avec un montant de "+ Montant + "Da a été effectué avec succès ");
                                 response = {
                                     'statutCode' : 200, //succe
                                     'succe': 'Virement  entre  votre Compte courant et votre compte epargne  effectue avec succe'          
@@ -380,12 +426,22 @@ function Listes_virements_non_traites(req, res){
     tokenVerifier(token, function(response){   //vérifier le access token auprès du serveur d'authentification      
     
     if (response.statutCode == 200){ 
-            sequelize.query('exec VirementNonTraites').spread((results, rows) => {      
-                
-                    res.status(200).json(rows);
-            })  
+         Virement.findAll({
+            
+            where:{'Statut' : 0} })
+        .then((Virements) => {
+            res.status(200).json({'virements': Virements});
+            
+            
+          }).catch(err => {
+            res.status(404).json({'erreur': err});
+    
+        });
+           
 }
+else { res.status(response.statutCode).json({'erreur': response.error});}
 })
+
 }
 
 
@@ -394,35 +450,113 @@ function Listes_virements_non_traites(req, res){
 /*--------------------------------Procedure pour valider ou rejeter un virement -----------------------------------------*/
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
-function validerRejeterVirement(req, res){
+function validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,rep){
+    var idcommission ={}
+    var MontantVirement= {}
+    var montantcomm ={}
 
-    var Code=req.body.code;
-    var Statut = req.body.statut;
-    console.log("le code est "+ Code + "le statut "+ Statut);
-
-    const token = req.headers['token']; //récupérer le Access token
-    
-    tokenVerifier(token, function(response){   //vérifier le access token auprès du serveur d'authentification      
-    
-    if (response.statutCode == 200){ 
-            sequelize.query('exec ValRejVir $Cod, $Stat', 
-            {
-                bind: {
-                        Cod: Code, 
-                        Stat: Statut,   //Compte destination                                                                                                                                                                                                                      
+    async.series({
+        Virements(callback){//montant envoye par lemmetteur non encore envoye
+            fcts.getVirement(code,function(err,montantcommission){
+                console.log("tes0")
+                if(err){
+                    console.log("tes4")
+                    response = {
+                        'statutCode' :  Codes.code.codenotfound, // success
+                        'error': Erreur_francais.erreur_francais.montantnontrouve         
                      }
-                     
-            }).then((response) => {
-                return( res.status(200).json({'succe':'Virement est mit à jour'}));
-            
-             }).catch(err => {return(res.status(500).json({'error': 'Aucun virement mit à jour'}))});                                             
+                    rep(response); 
+                }
+                else {
+                    MontantVirement=montantcommission.Montant
+                    idcommission=montantcommission.IdCommission
+                    console.log("le montant virement non encore validé "+MontantVirement+ "id de la commison finale"+idcommission)
+                    callback()
+                }
+                                
+            })
+        },
+           
+        montantenvoye(callback){//Commission non encore enlevee a lemmetter
+            fcts.MontantCommission(idcommission,function(err,montantdecommission){
+                console.log("tes1")
+                if(err){console.log("tes2")
+                    response = {
+                        'statutCode' : Codes.code.codenotfound, // success
+                        'error': "Erreur_francais.erreur_francais.commissioninexistante   "        
+                     }
+                    rep(response); 
+                }
+                else {
+                    montantcomm=montantdecommission
+                    console.log("montant Commission "+montantcomm)
+                    callback()
+                }
+                                
+            })
+        },
+        
+        function(callback){//Montant envoye par l'emmetteur pas encore envoyé
+        console.log("le code est "+ code+ "compte emmetteur est "+comptemetteur+ "id de la commission est "+idcommission+ " montant de la commission est "+ montantcomm+ " le montant denvoi est "+MontantVirement)
+            fcts.validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,idcommission,montantcomm,MontantVirement,function(err,res){                
+                if (err){
+                   
+                    response = {
+                        'statutCode' : Codes.code.codenotfound, 
+                        'error': Erreur_francais.erreur_francais.virementnonreussi          
+                    }
+                    rep(response); 
+                 }
+                 else{
+                    response = {
+                        'statutCode' : Codes.code.codesucce, // success
+                        'Success': Erreur_francais.erreur_francais.virementreussi    
+                    }
+                    rep(response); 
+                 }
+    })
 }
 })
 }
 
-return {TranferClientTH,Virement_local,Listes_virements_non_traites,validerRejeterVirement};
+function getJustificatif (userId,codevirement,callback){
+    
+    Virement.findOne({
+        attributes:['NomEmetteur','CompteEmmetteur','NomDestinataire','CompteDestinataire','Justificatif'],
+        where: {  'Code' : codevirement}
+    }).then( (JustificatifFound)=>{
+
+        if(JustificatifFound){
+            response = {
+                'statutCode' : Codes.code.codesucce, // success
+                'NomEmetteur':JustificatifFound.NomEmetteur,
+                'CompteEmmetteur': JustificatifFound.CompteEmmetteur,
+                'NomDestinataire' : JustificatifFound.NomDestinataire,
+                'CompteDestinataire':JustificatifFound.CompteDestinataire,
+                'Justificatif' : JustificatifFound.Justificatif    
+            }
+            callback(response);
+        }else {
+            response = {
+                'statutCode' : Codes.code.codenotfound, //not Found
+                'error':Erreur_francais.erreur_francais.justificatifnontrouve      
+            }
+            callback(response);
+        }
+    }).catch((err)=>{
+        console.log(err);
+        response = {
+            'statutCode' : Codes.code.servererror, 
+            'error':Erreur_francais.erreur_francais.erreurservervirement       
+        }
+        callback(response);
+    });
+
 }
 
+return {TranferClientTH,Virement_local,Listes_virements_non_traites,validerRejeterVirement,getJustificatif};
+
+}
 
 
 

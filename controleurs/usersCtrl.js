@@ -12,9 +12,6 @@ module.exports = function(User,sequelize) {
 /*                                      Procedure de création des comptes utilisateur                                   */
  
 /*-----------------------------------------------------------------------------------------------------------------------*/   
-
-     
-
 function createUserAccount(req, res,type,callback){
       
     //récupérer les paramètres de l'utilisateur depuis le body de la requete
@@ -152,6 +149,7 @@ function createUserAccount(req, res,type,callback){
 
 
 function FileUpload(req,res,distination,callback){
+    
 
     var fileName = req.body.UserName;
     const storage = multer.diskStorage({
@@ -159,7 +157,7 @@ function FileUpload(req,res,distination,callback){
         filename: function (req, file, callback1) {
             callback1(null,'avatar_'+Date.now()+path.extname(file.originalname));
         }
-      });
+        });
 
     const upload = multer({ storage: storage }).single('avatar');
 
@@ -179,8 +177,6 @@ function FileUpload(req,res,distination,callback){
         callback(response);
      }
     });
-    
-
 }
 
 /*---------------------------------------------------------------------------------------------------------------------*/
@@ -242,10 +238,6 @@ function getUserInfo  (UserId,callback){
                 });
             
 }
-
-
-
-
 
     //exporter les services :
     return {BankerInscription,getUserInfo,FileUpload,createUserAccount};
