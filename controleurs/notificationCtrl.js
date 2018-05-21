@@ -221,16 +221,16 @@ function addNotificationOrdreVirement(){
 
 function marquerNotificationLue(idNotification,callback){
     
-   Notification.findOne(
+    Notification.findOne(
        {
-          attributes:['Lue'],
-          where: {  'IdNotification' : idNotification }
+          attributes:['IdNotification','Lue'],
+          where: { 'IdNotification' : idNotification }
        }
     ).then(function(NotificationFound){
 
         if (NotificationFound){
             if(NotificationFound.Lue == 0){
-                Notification.update({
+                NotificationFound.update({
                     Lue: 1
                 }).then(function() {
                     
@@ -289,7 +289,7 @@ function getUnreadNotifications(idUser,callback){
     
     Notification.findAll(
         {
-            attributes:['IdNotification',' Evenement','Montant','ClientCorrespondant','TypeCompteEmetteur','TypeCompteRecepteur','Etat'],
+            attributes:['IdNotification','Evenement','Montant','ClientCorrespondant','TypeCompteEmetteur','TypeCompteRecepteur','Etat'],
             order: [
                 ['Date', 'DESC']
             ],
@@ -308,6 +308,11 @@ function getUnreadNotifications(idUser,callback){
     }).catch((err)=>{
 
         console.log(err)
+        response ={
+            'statutCode' : 500,
+            'error' : "unable to get unread notifications"
+        }
+        callback(response)
     })
 
 }

@@ -186,7 +186,7 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
                                     notificationController.addNotificationVirementRecu(idrecepteur,nomemmetteur,montant,(idNotification)=>{
 
                                         //envoi de notification mobile "Virement recu"
-                                        notificationController.sendNotification(idrecepteur,idNotification)
+                                        notificationController.sendNotification(idrecepteiduseremmetteurur,idNotification)
 
                                     })
 
@@ -202,7 +202,7 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
                 })
             }
             else{
-                console.log("teste2")
+
                 if ((montant>=200000) &&(imagePath.substr(0,13 )=='justificatifs')){
                     fcts.AddVirementClientTharwaEnAttente(montant,Comptedest,numcompteemmetteur,Motif,nomemmetteur,imagePath,nomrecepteur,pourcentagecomm,residcomm,function(err,res){
                         if (err){  
@@ -482,10 +482,42 @@ function validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,rep
     var idcommission ={}
     var MontantVirement= {}
     var montantcomm ={}
+    var nomEmetteur = {}
+    var nomRecepteur ={}
+    var idEmetteur ={}
+    var idRecepteur ={}
+
+    Compte.findOne(
+        {
+            attributes:['IdUser'],
+            where: { 'Num' : comptemetteur }
+        }
+    ).then((compteFound)=>{
+
+        if(compteFound) idEmetteur = compteFound.IdUser
+
+    }).catch((err)=>{
+        console.log('Erreur recherche idEmetteur : '+err)
+
+    });
+
+    Compte.findOne(
+        {
+            attributes:['IdUser'],
+            where: { 'Num' : comtpedestinataire }
+        }
+    ).then((compteFound)=>{
+
+        if(compteFound) idRecepteur = compteFound.IdUser
+
+    }).catch((err)=>{
+        console.log('Erreur recherche idRecepteur : '+err)
+
+    });
 
     async.series({
         Virements(callback){//montant envoye par lemmetteur non encore envoye
-            fcts.getVirement(code,function(err,montantcommission){
+            fcts.getVirement(code,function(err,virement){
                 console.log("tes0")
                 if(err){
                     console.log("tes4")
@@ -496,8 +528,10 @@ function validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,rep
                     rep(response); 
                 }
                 else {
-                    MontantVirement=montantcommission.Montant
-                    idcommission=montantcommission.IdCommission
+                    MontantVirement=virement.Montant
+                    idcommission=virement.IdCommission
+                    nomEmetteur = virement.NomEmetteur
+                    nomRecepteur = virement.NomDestinataire
                     console.log("le montant virement non encore validé "+MontantVirement+ "id de la commison finale"+idcommission)
                     callback()
                 }
@@ -536,6 +570,44 @@ function validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,rep
                     rep(response); 
                  }
                  else{
+
+                    switch(statut){
+                        case 1: 
+                            notificationController.addNotificationVirementEmis(idEmetteur,nomRecepteur ,MontantVirement,1,(idNotification)=>{
+
+                                //envoi de notification mobile "Virement emis validé"
+                                notificationController.sendNotification(idEmetteur,idNotification)
+
+                                notificationController.addNotificationCommission(idEmetteur,1,0,montantcomm,(idNotification)=>{
+
+                                    
+
+                                    //envoi de notification mobile "Commission d'opération"
+                                    notificationController.sendNotification(idEmetteur,idNotification)
+
+                                    notificationController.addNotificationVirementRecu(idRecepteur,nomEmetteur,MontantVirement,(idNotification)=>{
+
+                                        //envoi de notification mobile "Virement recu"
+                                        notificationController.sendNotification(idRecepteur,idNotification)
+
+                                    })
+
+                                })
+                            })
+
+                        break;
+                        case 2: 
+
+                            notificationController.addNotificationVirementEmis(idEmetteur,nomRecepteur ,MontantVirement,0,(idNotification)=>{
+
+                                //envoi de notification mobile "Virement emis non validé"
+                                notificationController.sendNotification(idEmetteur,idNotification)
+
+                            
+                            })
+
+                        break;
+                    }
                     response = {
                         'statutCode' : Codes.code.codesucce, // success
                         'Success': Erreur_francais.erreur_francais.virementreussi    
