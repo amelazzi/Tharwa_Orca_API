@@ -50,11 +50,12 @@ function getNextIdComm(test,callback){
        
         callback(id);}
 }
-function historique(iduser,callback){
-    sequelize.query('exec historique $userid',
+function historique(iduser,type,callback){
+    sequelize.query('exec historique_compte $userid , $typecompte',
                     {
                           bind: {
-                                 userid:iduser
+                                 userid:iduser,
+                                 typecompte:type
                                 }
                         }).then((historique) => {
                             
@@ -258,5 +259,5 @@ function validerRejeterVirement(Code,CompteEmmett,CompteDestin,Statut,Idcomm,Mon
 
 return {GetCompte,GetUser,getNextIdComm,VirCourDevis,VirCourEpar,historique,MontantCommission,
     GetNextIdCommission,GetPourcentageCommission,AddVirementClientTharwa,
-    AddVirementClientTharwaEnAttente,getIdUser,getVirement,validerRejeterVirement}
+    AddVirementClientTharwaEnAttente,getIdUser,getVirement,validerRejeterVirement,conversion}
 }

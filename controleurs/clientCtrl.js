@@ -194,9 +194,9 @@ function getClientInfo (clientId,callback){
 /*---------------Procedure pour recuperer l'historique de tout les virements et commissions d'un client------------------------------------*/
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
-function historique(iduser,callback){
+function historique(iduser,type,callback){
 
-    fcts.historique(iduser,function(err,historique) {
+    fcts.historique(iduser,type,function(err,historique) {
         if (err){
             response = {
                 'statutCode' : 500, // success
