@@ -3,6 +3,11 @@ const express = require("express");
 const bodyParser = require('body-parser');
 const Sequelize = require('sequelize');
 const http = require('http');
+var winston = require('./config/winston');
+var morgan = require('morgan');
+var appRoot = require('app-root-path');
+console.log(appRoot)
+require('colors');
 
 //instanciation du serveur
 var server = express();
@@ -10,6 +15,7 @@ var server = express();
 //Config de Body-Parser
 server.use(bodyParser.urlencoded({extended:true}));
 server.use(bodyParser.json());
+server.use(morgan('combined', { stream: winston.stream }));
 
 
 // config of database THARWA
@@ -47,7 +53,7 @@ sequelize
 
 
 var serv2 = http.createServer(server).listen(8080,function (){
-   console.log("Serveur en écoute !");
+   console.log("Serveur en écoute ! sur 8080");
    console.log(__dirname)
 });
 
@@ -159,3 +165,4 @@ module.exports = server; // pour le test
 //const testFct = require('./test/testFct')(fcts);
 //cont accountFct = require('./test/testAccount')(compteAccess);
 //const clientTest  = require('./test/testClient')(clientController);
+//const notificationTest  = require('./test/testNotification')(notificationController);

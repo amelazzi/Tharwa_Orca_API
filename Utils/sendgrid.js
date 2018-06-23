@@ -2,6 +2,7 @@
 
 var nodemailer = require('nodemailer');
 const Nexmo = require('nexmo');
+const sgMail = require('@sendgrid/mail');
 
 
 var transporter = nodemailer.createTransport({
@@ -16,9 +17,22 @@ var transporter = nodemailer.createTransport({
     pass: 'orca@2018'
   }
 });
-const sendEmail = function (to , object, corp){
+const sendEmail = function (destinataire , object, corp){
+  
+sgMail.setApiKey('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');
+const msg = {
+  to: destinataire,
+  from: 'tharwa.ebank@gmail.com',
+  subject: object,
+  html: '<b> '+corp+'</b>',
+};
+sgMail.send(msg, function(err, json){
+  if(err) { return console.error(err); }
+  else console.log('Email envoye avec succès');
+});
+/*
 var mailOptions = {
-  from: 'em_meguellati@esi.dz',
+  from: 'tharwa.ebank@gmail.com',
   to: to,
   subject: object,
   html: '<b> '+corp+'</b>'
@@ -31,6 +45,7 @@ transporter.sendMail(mailOptions, function(error, info){
     console.log('Email sent: ' + info.response);
   }
 });
+*/
 };
 const sendsms=function(num,code){
   const nexmo = new Nexmo({
