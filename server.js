@@ -6,7 +6,7 @@ const http = require('http');
 var winston = require('./config/winston');
 var morgan = require('morgan');
 var appRoot = require('app-root-path');
-console.log(appRoot)
+
 require('colors');
 
 //instanciation du serveur
@@ -154,10 +154,10 @@ const GestionnaireRoute = require('./routes/GestionnaireRoute')(express,Gestionn
 server.use('/gestionnaire',GestionnaireRoute);
 
 
-server.listen(8088,function (){
-   console.log("Serveur en écoute !");
+/*server.listen(8088,function (){
+   console.log("Serveur en écoute ! 8080 ");
    console.log(__dirname)
-});
+});*/
 
 module.exports = server; // pour le test 
 /*------------------ test --------------------*/

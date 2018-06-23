@@ -257,6 +257,110 @@ function validerRejeterVirement(Code,CompteEmmett,CompteDestin,Statut,Idcomm,Mon
     });
 }
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////Ajout de commissions mensuelles ///////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////::
+var schedule = require('node-schedule');
+
+
+  var schedule = require('node-schedule');
+  var rule2 = new schedule.RecurrenceRule();
+  rule2.month = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  rule2.hour = 0;
+  rule2.minute = 0;
+
+   var  TarifCompteCourant ={};
+    var TarifCompteDollar ={};
+    var TarifCompteEpargne={};
+    var TarifCompteEuro={};
+    schedule.scheduleJob(rule2, function(){
+  
+  async.series({
+
+    CompteCourant(callback){ // recuperer le tarif menseul de la commission du compte courant 
+        TarifCommission.findOne({
+            attributes:['montant'],
+            where:{'Code' :7} })
+        .then((montantE) => {
+            CompteCourant=montantE.montant
+           callback();
+          }).catch(err => {
+        console.log(err) ;   
+        });
+    },
+    CompteEpargne(callback){ // recuperer le tarif mensuel de la commission du compte epargne 
+
+        TarifCommission.findOne({
+            attributes:['montant'],
+            where:{'Code' : 8} })
+        .then((montantE) => {
+            CompteEpargne=montantE.montant
+           callback();
+          }).catch(err => {
+        console.log(err) ;   
+        });
+    },
+    CompteEuro(callback){ // recuperer le tarif mensuel de la commisssion du compte euro et le convertir vers l'euro 
+
+    TarifCommission.findOne({
+        attributes:['montant'],
+        where:{'Code' : 9} })
+    .then((montantEU) => {
+        conversion(montantEU.montant,0,function(resultat){
+            CompteEuro=resultat
+            callback();
+        });
+        
+      }).catch(err => {
+    console.log(err) ; 
+
+    });
+    },
+    CompteDollar(callback){ //recuperer le tarif mensuel de la commisssion du compte dollar et le convertir vers le dollar
+
+        TarifCommission.findOne({
+            attributes:['montant'],
+            where:{'Code' : 9} })
+        .then((montantD) => {
+            conversion(montantD.montant,1,function(resultat){
+                CompteDollar=resultat
+                callback();
+            });
+            
+          }).catch(err => {
+        console.log(err) ; 
+    
+        });
+    },
+    Commissionmensuel(callback){
+        
+          
+
+            sequelize.query('exec commission_mensuelle $courant,$epargne,$euro,$dollar',
+                    {
+                          bind: {
+                            courant: CompteCourant,
+                            epargne:CompteEpargne,
+                            euro: CompteEuro,
+                            dollar : CompteDollar,
+                          
+                                   }
+                            }).then((res) => {
+                                callback();   
+                            }).catch(err => {
+                                
+                                console.log(err);  
+                            });
+
+    
+    }
+});
+  });
+
+
+  
+
 return {GetCompte,GetUser,getNextIdComm,VirCourDevis,VirCourEpar,historique,MontantCommission,
     GetNextIdCommission,GetPourcentageCommission,AddVirementClientTharwa,
     AddVirementClientTharwaEnAttente,getIdUser,getVirement,validerRejeterVirement,conversion}
