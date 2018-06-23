@@ -1,21 +1,19 @@
-
-
 var nodemailer = require('nodemailer');
 const Nexmo = require('nexmo');
 const sgMail = require('@sendgrid/mail');
 
 
 var transporter = nodemailer.createTransport({
-  transport: "SMTP",
-    host: "smtp.gmail.com",
-    secureConnection: false,
-   
-    requiresAuth: true,
-    domains: ["gmail.com", "googlemail.com"],
-    auth: {
-    user: 'tharwa.ebank@gmail.com',
-    pass: 'orca@2018'
-  }
+ transport: "SMTP",
+   host: "smtp.gmail.com",
+   secureConnection: false,
+ 
+   requiresAuth: true,
+   domains: ["gmail.com", "googlemail.com"],
+   auth: {
+   user: 'tharwa.ebank@gmail.com',
+   pass: 'orca@2018'
+ }
 });
 const sendEmail = function (destinataire , object, corp){
   
@@ -39,34 +37,34 @@ var mailOptions = {
 };
 
 transporter.sendMail(mailOptions, function(error, info){
-  if (error) {
-    console.log(error);
-  } else {
-    console.log('Email sent: ' + info.response);
-  }
+ if (error) {
+   console.log(error);
+ } else {
+   console.log('Email sent: ' + info.response);
+ }
 });
 */
 };
 const sendsms=function(num,code){
-  const nexmo = new Nexmo({
-    apiKey: '19745c21',
-    apiSecret: 'UDiTcLMcHtR1L3P2'
-   });
-   
-   nexmo.message.sendSms(
-    'Tharwa Bank', num, 'Your code confiramtion is : '+code,
-      (err, responseData) => {
-        if (err) {
-          console.log(err);
-        } else {
-          console.dir(responseData);
-        }
-      }
-   );
+ const nexmo = new Nexmo({
+   apiKey: '19745c21',
+   apiSecret: 'UDiTcLMcHtR1L3P2'
+  });
+ 
+  nexmo.message.sendSms(
+   'Tharwa Bank', num, 'Your code confiramtion is : '+code,
+     (err, responseData) => {
+       if (err) {
+         console.log(err);
+       } else {
+         console.dir(responseData);
+       }
+     }
+  );
 };
 module.exports =
 {
-  
-  sendEmail,
-  sendsms
+ 
+ sendEmail,
+ sendsms
 };

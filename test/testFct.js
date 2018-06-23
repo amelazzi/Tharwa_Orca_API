@@ -4,7 +4,7 @@ var describe = mocha.describe
 //const { describe, it, before, after } = require('mocha');
 module.exports = function(fcts){
   
-describe('Compte ', function () {
+/*describe('Compte ', function () {
   it('should return a num Compte ', function () {
     
     // 1. ARRANGE
@@ -22,7 +22,7 @@ describe('Compte ', function () {
     
  
   });
-});
+});*/
 describe('Nom ', function () {
   it('should return  the user  ', function () {
     
@@ -89,10 +89,45 @@ describe('Taux de change  ', function () {
                 
         // 3. ASSERT
          expect(montant).to.be.equal(montant_conv);
-       });
-
-    
+       });  
  
   });
 });
+
+/*Test virement vers un autre client THARWA*/
+describe('Pourcentage commission  ', function () {
+  it('should return le pourcentage commision lors virement vers un autre client tharwa ', function () {
+    
+    // 1. ARRANGE
+    var PourcentageCommission = 1;
+    
+    // 2. ACT
+    fcts.GetPourcentageCommission(4,function(montant_comm) {
+                
+        // 3. ASSERT
+         expect(PourcentageCommission).to.be.equal(montant_comm);
+       });
+ 
+  });
+});
+describe('Email destinataire ', function () {
+  it('should return  email destinataire ', function () {
+    
+    // 1. ARRANGE
+    var Compte = 'THW000003DZD';
+    var iduser ='en_kerkar@esi.dz'
+
+    // 2. ACT
+    fcts.getIdUser(Compte,function(err, comte1) {
+                
+        // 3. ASSERT
+      
+         expect(comte1.IdUser).to.be.equal(iduser);
+       });
+
+  });
+});
+
+
+
 }

@@ -228,10 +228,10 @@ function getIdUser(comptee, callback){
 
 function getVirement(codee, callback){ // Recupération du montant de la commission ansi que sons ID
     Virement.findOne({
-        attributes:['Montant','IdCommission'],
+        attributes:['Montant','IdCommission','NomDestinataire','NomEmetteur'],
         where:{'Code' :codee}
-    }).then((MontantIdCommission) => {        
-        callback(null,MontantIdCommission);
+    }).then((virement) => {        
+        callback(null,virement);
        }).catch(err => {
            console.log("error est "+err)
          callback(err,null);});

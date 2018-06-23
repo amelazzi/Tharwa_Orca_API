@@ -35,6 +35,7 @@
     "nodemailer": "^4.6.0",
     "open-exchange-rates": "^0.3.0",
     "request": "^2.83.0",
+    "sendgrid": "^5.2.3",
     "sequelize": "^4.35.0",
     "socket.io": "^2.1.1",
     "tedious": "^2.3.1",
