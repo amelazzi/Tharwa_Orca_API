@@ -4,7 +4,7 @@ var describe = mocha.describe
 //const { describe, it, before, after } = require('mocha');
 module.exports = function(fcts){
   
-describe('Compte ', function () {
+/*describe('Compte ', function () {
   it('should return a num Compte ', function () {
     
     // 1. ARRANGE
@@ -22,7 +22,7 @@ describe('Compte ', function () {
     
  
   });
-});
+});*/
 describe('Nom ', function () {
   it('should return  the user  ', function () {
     

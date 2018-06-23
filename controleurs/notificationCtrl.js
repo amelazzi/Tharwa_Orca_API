@@ -1,5 +1,7 @@
 //imports 
 const datetime = require('node-datetime');
+const sendgrid = require('../Utils/sendgrid');
+
 
 //exports
 module.exports = function(Notification,clientsConnectes,sequelize) {
@@ -221,16 +223,16 @@ function addNotificationOrdreVirement(){
 
 function marquerNotificationLue(idNotification,callback){
     
-   Notification.findOne(
+    Notification.findOne(
        {
-          attributes:['Lue'],
-          where: {  'IdNotification' : idNotification }
+          attributes:['IdNotification','Lue'],
+          where: { 'IdNotification' : idNotification }
        }
     ).then(function(NotificationFound){
 
         if (NotificationFound){
             if(NotificationFound.Lue == 0){
-                Notification.update({
+                NotificationFound.update({
                     Lue: 1
                 }).then(function() {
                     
@@ -289,7 +291,7 @@ function getUnreadNotifications(idUser,callback){
     
     Notification.findAll(
         {
-            attributes:['IdNotification',' Evenement','Montant','ClientCorrespondant','TypeCompteEmetteur','TypeCompteRecepteur','Etat'],
+            attributes:['IdNotification','Evenement','Montant','ClientCorrespondant','TypeCompteEmetteur','TypeCompteRecepteur','Etat'],
             order: [
                 ['Date', 'DESC']
             ],
@@ -308,6 +310,11 @@ function getUnreadNotifications(idUser,callback){
     }).catch((err)=>{
 
         console.log(err)
+        response ={
+            'statutCode' : 500,
+            'error' : "unable to get unread notifications"
+        }
+        callback(response)
     })
 
 }
@@ -478,10 +485,56 @@ function sendNotification(idUser,idNotification){
 }
 
 
+function sendNotificationMail(idUser,idNotification){
+++
+   
+        createNotificationMessage(idNotification,(notification)=>{
+       // clientsConnectes.get(idUser).emit('notification',notification.message)
+        sendgrid.sendEmail(idUser,"Virement THARWA",notification.message);
+        //console.log("notification envoyée au client mobile")
+              });
+    
+
+
+}
+
+
+function addNotificationVirementEmistest(idUser,NomRecepteur,montant,etat,callback){
+   
+    //get current date and time
+    var dt = datetime.create();
+    var formatted = dt.format('Y-m-dTH:m:S');
+    var dateCreation = formatted ;
+ 
+    var newNotification = Notification.create({
+      
+        IdUser : idUser,
+        Date : dateCreation,
+        Lue : 0,//0 pour notification non lue et 1 pour notification lue
+        Evenement:2 ,//evenement de virement émis
+        Montant: montant, //montant emis
+        ClientCorrespondant : NomRecepteur, //nom du client vers qui le virement est effectué
+        Etat : etat // 0 pour virement rejeté et 1 pour virement accepté
+ 
+    }).then(function(newNotification){
+         response = true
+         callback(response);
+        
+    })
+    .catch(err => {
+ 
+         response = false
+         callback(response)
+         console.error('Unable to add notification', err);
+     });
+ 
+ }
+
+
 
 //exporter les procedure :
 return {addNotificationCompte,addNotificationVirementEntreSesComptes,addNotificationVirementEmis,
         addNotificationVirementRecu,addNotificationCommission,marquerNotificationLue,getUnreadNotifications,
-        createNotificationMessage,sendNotification};
+        createNotificationMessage,sendNotification,sendNotificationMail,addNotificationVirementEmistest};
 
 }    

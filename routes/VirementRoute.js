@@ -17,7 +17,7 @@ module.exports = function(express,chemin,VirementController,tokenController,user
     router.post('/VirementClientTh',(req,res) =>{
        // VirementController.TranferClientTH(req,res);
        usersController.FileUpload(req,res,'./justificatifs',(response)=>{
-           console.log("hello")
+           
             if(response.statutCode == 200){
                 var montant=req.body.Montant;
                 var dest=req.body.CompteDestinataire;//numero de compte de destinataire

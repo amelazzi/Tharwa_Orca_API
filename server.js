@@ -148,13 +148,14 @@ const GestionnaireRoute = require('./routes/GestionnaireRoute')(express,Gestionn
 server.use('/gestionnaire',GestionnaireRoute);
 
 
-/*server.listen(8088,function (){
+server.listen(8088,function (){
    console.log("Serveur en écoute !");
    console.log(__dirname)
-});*/
+});
 
 module.exports = server; // pour le test 
 /*------------------ test --------------------*/
 //const testFct = require('./test/testFct')(fcts);
 //cont accountFct = require('./test/testAccount')(compteAccess);
 //const clientTest  = require('./test/testClient')(clientController);
+//const notificationTest  = require('./test/testNotification')(notificationController);

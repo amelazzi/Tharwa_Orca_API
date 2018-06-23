@@ -50,11 +50,12 @@ function getNextIdComm(test,callback){
        
         callback(id);}
 }
-function historique(iduser,callback){
-    sequelize.query('exec historique $userid',
+function historique(iduser,type,callback){
+    sequelize.query('exec historique_compte $userid , $typecompte',
                     {
                           bind: {
-                                 userid:iduser
+                                 userid:iduser,
+                                 typecompte:type
                                 }
                         }).then((historique) => {
                             
@@ -227,10 +228,10 @@ function getIdUser(comptee, callback){
 
 function getVirement(codee, callback){ // Recupération du montant de la commission ansi que sons ID
     Virement.findOne({
-        attributes:['Montant','IdCommission'],
+        attributes:['Montant','IdCommission','NomDestinataire','NomEmetteur'],
         where:{'Code' :codee}
-    }).then((MontantIdCommission) => {        
-        callback(null,MontantIdCommission);
+    }).then((virement) => {        
+        callback(null,virement);
        }).catch(err => {
            console.log("error est "+err)
          callback(err,null);});
@@ -258,5 +259,5 @@ function validerRejeterVirement(Code,CompteEmmett,CompteDestin,Statut,Idcomm,Mon
 
 return {GetCompte,GetUser,getNextIdComm,VirCourDevis,VirCourEpar,historique,MontantCommission,
     GetNextIdCommission,GetPourcentageCommission,AddVirementClientTharwa,
-    AddVirementClientTharwaEnAttente,getIdUser,getVirement,validerRejeterVirement}
+    AddVirementClientTharwaEnAttente,getIdUser,getVirement,validerRejeterVirement,conversion}
 }

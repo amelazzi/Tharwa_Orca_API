@@ -5,7 +5,7 @@ let chaiHttp = require('chai-http');
 let server = require('../server');
 let should = chai.should();
 chai.use(chaiHttp);
-
+/*
  
   describe('/GET Virement externe  ', () => {
       it('it should GET all the externe virements', (done) => {
@@ -19,13 +19,16 @@ chai.use(chaiHttp);
               done();
             });
       });
-  });
+  });*/
 
   describe('/GET historique ', () => {
     it('it should GET historique', (done) => {
       chai.request(server)
-          .get('/clients/historique')
+          .post('/clients/historique')
           .set({'token':'Vk5sdkIaq5fAnhepbrXOndqFtRscTXrVQWPUKX5bjAKsZAI4UJSpEKItNEoBJdsgECrVCHTCOohIozlsuugwnD3wKnRtYOtnZBJ14NGwZH4Ya6TnOpfSWbo5Bxvh4ybjI1385jHklEDfsqoSwLstQv792W7E6ENA3klObi4QrMExjbEPOJUbmUX5j6uwT36MM87zNIjXqOW6c3GKaXGANvQ9HOCaX2eNaDQtySq5iJv5dvUJgnQodrN7GYXVpxq'})
+          .send({
+            'type': '0'
+          })
           .end((err, res) => {
               res.should.have.status(200);
               res.body.historique.should.be.a('array');
@@ -33,8 +36,8 @@ chai.use(chaiHttp);
             done();
           });
     });
-});
-
+ });
+/*
 describe('/Post Virement entre ces comptes', () => {
   it('it should effectue un virement entre un compte courant et un compte epargne', (done) => {
     chai.request(server)
@@ -73,7 +76,7 @@ describe('/Post Virement entre ces comptes ', () => {
           done();
         });
   });
-});
+});*/
 
 /* TEST VIREMENT VERS UN AUTRE CLIENT THARWA */
 describe('/virement/VirementClientTh ', () => {
