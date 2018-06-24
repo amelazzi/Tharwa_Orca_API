@@ -17,8 +17,10 @@ router.post('/new',(req,res) =>{
             var type = parseInt(req.body.Type);
             accountController.CreateNewBanqueAccount(OauthResponse.userId,type,(response)=>{
                  if(response.statutCode == 201){
+                    winston.info(`${formatted} Status=400 - message = missing parameters - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
                     res.status(response.statutCode).json({'compte' : response.compte});
                  }else {
+                    winston.error(`${formatted} Status=400 - message = missing parameters - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
                     res.status(response.statutCode).json({'error': response.error});
                  }
             })
