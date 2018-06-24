@@ -1,4 +1,4 @@
-//imports and constants
+/*//imports and constants
 const base_url = "http:localhost:8080";
 var request = require("request");
 var expect  = require('chai').expect;
@@ -7,7 +7,7 @@ let chai = require('chai');
 let chaiHttp = require('chai-http');
 let server = require('../server');
 let should = chai.should();
-chai.use(chaiHttp);
+chai.use(chaiHttp); */
 
 
 //tester la récupération des info du tableau de bord

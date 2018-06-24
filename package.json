@@ -16,8 +16,8 @@
   "author": "ORCA",
   "license": "ISC",
   "dependencies": {
-    "@sendgrid/mail": "^6.2.1",
-    "app-root-path": "^2.0.1",
+    "@sendgrid/mail": "^6.3.1",
+    "app-root-path": "^2.1.0",
     "async": "^2.6.0",
     "async-if-else": "^1.1.1",
     "bcrypt": "^1.0.3",
