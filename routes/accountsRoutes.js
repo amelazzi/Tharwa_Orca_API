@@ -19,17 +19,16 @@ router.post('/new',(req,res) =>{
             var type = parseInt(req.body.Type);
             accountController.CreateNewBanqueAccount(OauthResponse.userId,type,(response)=>{
                  if(response.statutCode == 201){
-                    winston.info(`${formatted} Status=400 - message = missing parameters - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
+                    winston.info(`${formatted} Status=${response.statutCode} - message = ${response.compte} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
                     res.status(response.statutCode).json({'compte' : response.compte});
                  }else {
-
-                    winston.error(`${formatted} Status=400 - message = missing parameters - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
+                    winston.error(`${formatted} Status=${response.statutCode} - message = ${response.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
                     res.status(response.statutCode).json({'error': response.error});
                  }
             })
         
         }else {
-            
+            winston.error(`${formatted} Status=${OauthResponse.statutCode} - message = ${OauthResponse.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
             res.status(OauthResponse.statutCode).json({'error': OauthResponse.error});
         }
     });
@@ -47,6 +46,7 @@ router.put('/validate',(req,res) =>{
         if (OauthResponse.statutCode == 200){
             numCmpt = req.body.num;
             if(numCmpt == null){
+                winston.error(`${formatted} Status=400 - message = missing account number - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
                 res.status(400).json({'error' : 'missing account number '});
             }else {
                
@@ -59,8 +59,10 @@ router.put('/validate',(req,res) =>{
                                 })
                             }   
                         });
+                        winston.info(`${formatted} Status=200 - message = account validated - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
                         res.status(200).json({'success' : 'account validated'});
                     } else {
+                        winston.error(`${formatted} Status=${response.statutCode} - message = ${response.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
                         res.status(response.statutCode).json({'error' : response.error});
                     }
                     
@@ -68,7 +70,7 @@ router.put('/validate',(req,res) =>{
             }
         
         }else {
-            
+            winston.error(`${formatted} Status=${OauthResponse.statutCode} - message = ${OauthResponse.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);            
             res.status(OauthResponse.statutCode).json({'error': OauthResponse.error});
         }
     });
@@ -89,6 +91,7 @@ router.put('/reject',(req,res) =>{
         if (OauthResponse.statutCode == 200){
             numCmpt = req.body.num;
             if(numCmpt == null){
+                winston.error(`${formatted} Status=400 - message =missing account number - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
                 res.status(400).json({'error' : 'missing account number '});
             }else {
                
@@ -101,8 +104,10 @@ router.put('/reject',(req,res) =>{
                                 })
                             }   
                         });
+                        winston.info(`${formatted} Status=200 - message = account rejected - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
                         res.status(200).json({'success' : 'account rejected'});
                     } else {
+                        winston.error(`${formatted} Status=${response.statutCode} - message = ${response.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
                         res.status(response.statutCode).json({'error' : response.error});
                     }
                     
@@ -110,7 +115,7 @@ router.put('/reject',(req,res) =>{
             }
         
         }else {
-            
+            winston.error(`${formatted} Status=${OauthResponse.statutCode} - message = ${OauthResponse.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
             res.status(OauthResponse.statutCode).json({'error': OauthResponse.error});
         }
     });
@@ -131,13 +136,17 @@ router.get('/compteNonValide',(req,res) =>{
         if (OauthResponse.statutCode == 200){
             accountController.getCompteNonValide((response)=>{
                if(response.statutCode == 200){
+                winston.info(`${formatted} Status=200 - message = ${response.Comptes} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
+
                 res.status(200).json({'Comptes': response.Comptes});
                } else {
+                winston.error(`${formatted} Status=${response.statutCode} - message = ${response.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
                 res.status(response.statutCode).json({'error': response.error}); 
                }
                
             });
         }else {
+            winston.error(`${formatted} Status=${OauthResponse.statutCode} - message = ${OauthResponse.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
             res.status(OauthResponse.statutCode).json({'error': OauthResponse.error});
         }
     });
