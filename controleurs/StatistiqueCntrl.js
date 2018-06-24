@@ -6,16 +6,16 @@ module.exports = function(sequelize) {
 
 
 function operation(option,callback){
-    console.log("option "+option.red)
+    
     switch (option){
         case '0':   // operation par mois 
         {
-            console.log("case 0 ".red)
+           console.log("test".red)
         sequelize.query('exec get_operation_mois',
     {
           
         }).then((operation_mois) => {
-            console.log(JSON.parse(JSON.stringify(operation_mois[0])))
+            
             response = {
                 'statutCode' : 200, // success
                 'operation': JSON.parse(JSON.stringify(operation_mois[0]))         

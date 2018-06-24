@@ -135,6 +135,11 @@ router.post('/tauxChange',(req,res) =>{
 
 
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 0cc3c0559bf78a0bf5c1f148982f0db3ad54a90b
     //exports :
    return router;
 

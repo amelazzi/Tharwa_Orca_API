@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const Sequelize = require('sequelize');
 const http = require('http');
 var winston = require('./config/winston');
-//var morgan = require('morgan');
+var morgan = require('morgan');
 var appRoot = require('app-root-path');
 
 require('colors');
@@ -15,7 +15,7 @@ var server = express();
 //Config de Body-Parser
 server.use(bodyParser.urlencoded({extended:true}));
 server.use(bodyParser.json());
-//server.use(morgan('combined', { stream: winston.stream }));
+server.use(morgan('combined', { stream: winston.stream }));
 
 
 // config of database THARWA
