@@ -111,7 +111,7 @@ function addNotificationVirementEmis(idUser,NomRecepteur,montant,etat,callback){
     })
     .catch(err => {
 
-         response = -1
+         response = false
          callback(response)
          console.error('Unable to add notification', err);
      });

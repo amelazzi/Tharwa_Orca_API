@@ -46,7 +46,7 @@ sequelize
 
 
 
-var serv2 = http.createServer(server).listen(8080,function (){
+/*var serv2 = http.createServer(server).listen(8080,function (){
    console.log("Serveur en écoute !");
    console.log(__dirname)
 });
@@ -96,7 +96,9 @@ io.sockets.on('connection', function (socket) {
        });
     });
 
-});
+}); */
+
+var clientsConnectés = new Map()
 
 //Models
 const User = sequelize.import(__dirname + "/models/Users");
@@ -156,6 +158,8 @@ server.use('/gestionnaire',GestionnaireRoute);
 module.exports = server; // pour le test 
 
 /*------------------ test --------------------*/
-//const testFct = require('./test/testFct')(fcts);
-//cont accountFct = require('./test/testAccount')(compteAccess);
+const testFct = require('./test/testFct')(fcts);
+//const accountFct = require('./test/testAccount')(compteAccess);
 //const clientTest  = require('./test/testClient')(clientController);
+
+const notificationTest  = require('./test/testNotification')(notificationController);
