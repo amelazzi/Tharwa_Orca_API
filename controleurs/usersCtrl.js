@@ -239,9 +239,91 @@ function getUserInfo  (UserId,callback){
             
 }
 
-function changerMDP (userId,nouveauMDP){
+ function changerMDP (userId,newMDP,oldMDP,callback){
 
-   
+                //hasher les mots de passe :
+                const oldPasswordHash = crypto.createHmac('sha256', oldMDP).digest('hex');
+                const newPasswordHash = crypto.createHmac('sha256', newMDP).digest('hex');
+
+               
+                
+                User.findOne({ //rechercher l'utilisateur dans La BDD THARWA
+                    attributes:['userId','password'],
+                    where: { 'userId' : userId  }
+                    
+                })
+                .then(function(userFound){
+                   
+                   if(userFound){ //si l'utilisateur est trouvé
+                        
+                        if(userFound.password == oldPasswordHash ){
+
+                            if(oldPasswordHash == newPasswordHash) {
+                                response = {
+                                        
+                                    'statutCode' : 400, // bad request
+                                    'error': "le nouveau mot de passe est identique à votre ancien mot de passe"          
+                                }
+                                callback(response)
+                            }else {
+                                User.update(
+                                    { password: newPasswordHash },
+                                    { where: { 'userId' :userId} }
+
+                                ).then(function() {
+                                    
+                                    response = {
+                                        'statutCode' : 200, // success
+                                        'success': 'password changed'        
+                                    }
+                                    callback(response);
+                                    
+                                }).catch(function(err) {
+                                    console.log(err)
+                                    response = {
+                                        
+                                        'statutCode' : 500, //internal error
+                                        'error': 'erreur dans la mise à jour du mot de passe'          
+                                    }
+                                    callback(response)
+                                    
+                                });
+                            }
+                           
+                               
+                        } else {
+
+                            response = {
+                                        
+                                'statutCode' : 400, // bad request
+                                'error': "l'ancien mot de passe est éronné"          
+                            }
+                            callback(response)
+
+                        }
+                    
+
+                   }else{
+                     // utilisateur non trouvé  
+                        response = {
+                            'statutCode' : 404, //not Found
+                            'error':'User not found'          
+                        }
+                        callback(response);    
+                   }
+                })
+                .catch(function(err){
+                    //Si une erreur interne au serveur s'est produite :
+                    console.log(err);
+                    response = {
+                        'statutCode' : 500, 
+                        'error':'Can\'t verify user'        
+                    }
+                    callback(response);
+                    
+                     
+                });
+            
 
 }
 
