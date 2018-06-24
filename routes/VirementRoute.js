@@ -2,6 +2,7 @@
 var multer  = require('multer')
 var upload = multer()
 var path = require('path');
+var winston = require('../config/winston');
 
 module.exports = function(express,chemin,VirementController,tokenController,usersController){
    
@@ -17,7 +18,7 @@ module.exports = function(express,chemin,VirementController,tokenController,user
     router.post('/VirementClientTh',(req,res) =>{
        // VirementController.TranferClientTH(req,res);
        usersController.FileUpload(req,res,'./justificatifs',(response)=>{
-           console.log("hello")
+           
             if(response.statutCode == 200){
                 var montant=req.body.Montant;
                 var dest=req.body.CompteDestinataire;//numero de compte de destinataire
@@ -30,6 +31,7 @@ module.exports = function(express,chemin,VirementController,tokenController,user
                 
                 //Verification de non null
                 if(montant == null || dest == null ||Motif==null||montant<0){
+                    winston.error(`Status=400 - message = missing parameters - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
                     return res.status(400).json({'error':'missing parameters'}); //bad request
                 }
                 else{ 
@@ -41,12 +43,15 @@ module.exports = function(express,chemin,VirementController,tokenController,user
                                         imagePath =  req.file.path;
                                         VirementController.TranferClientTH(OauthResponse.userId,montant,imagePath,dest,Motif,(response)=>{
                                             if (response.statutCode==200){
+                                                winston.info(`Status=${response.statutCode} - message = ${response.Success} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
                                                 res.status(200).json({'succe': response.Success});
                                             }else{
+                                                winston.error(`Status=${response.statutCode} - message = ${response.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
                                                 res.status(response.statutCode).json({'error': response.error}); 
                                             }
                                         })
                                     }else {
+                                        winston.info(`Status=404 - message = Justificatif manquant  - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
                                         res.status(404).json({'error': "Justificatif manquant"});
                                     }
                                          
@@ -55,8 +60,11 @@ module.exports = function(express,chemin,VirementController,tokenController,user
                                     imagePath=null
                                     VirementController.TranferClientTH(OauthResponse.userId,montant,imagePath,dest,Motif,(response)=>{
                                         if (response.statutCode==200){
+                                            winston.info(`Status=${response.statutCode} - message = ${response.Success} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
                                             res.status(200).json({'succe': response.Success});
                                         }else{
+                                            winston.error(`Status=${response.statutCode} - message = ${response.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
+
                                             res.status(response.statutCode).json({'error': response.error}); 
                                         }
                                     })
@@ -64,6 +72,8 @@ module.exports = function(express,chemin,VirementController,tokenController,user
                                 
                          }
                         else {
+                            winston.error(`Status=${OauthResponse.statutCode} - message = ${OauthResponse.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
+
                             res.status(OauthResponse.statutCode).json({'error': OauthResponse.error});
                         }
             
@@ -90,7 +100,8 @@ router.post('/local',(req,res) =>{
     var motif=req.body.motif;
     
 
-    if(montant == null || type1 == null || type2== null || motif == null){
+    if(montant == null || type1 == null || type2== null || motif == null||montant<=0){
+        winston.error(`Status=400 - message = missing parameters - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
         return res.status(400).json({'error':'missing parameters'}); //bad request
     }
      else{  
@@ -98,13 +109,16 @@ tokenController(token, function(OauthResponse){
     if (OauthResponse.statutCode == 200){
             VirementController.Virement_local(OauthResponse.userId,montant,type1,type2,motif,(response)=>{
             if(response.statutCode == 200){
+            winston.info(`Status=${response.statutCode} - message = ${response.succe} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
             res.status(200).json({'succe': response.succe});
             } else {
+            winston.error(`Status=${response.statutCode} - message = ${response.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
             res.status(response.statutCode).json({'error': response.error}); 
             }
            
         });
     }else {
+        winston.error(`Status=${OauthResponse.statutCode} - message = ${OauthResponse.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
         res.status(OauthResponse.statutCode).json({'error': OauthResponse.error});
     }
 });   
@@ -143,6 +157,7 @@ router.post('/validRejetVirement',(req,res) =>{
     
 
     if(code == null || comptemetteur == null || comtpedestinataire== null || statut == null){
+        winston.error(`Status=400- message = missing parameters  - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
         return res.status(400).json({'error':'missing parameters'}); //bad request
     }
      else{  
@@ -152,9 +167,11 @@ router.post('/validRejetVirement',(req,res) =>{
         
         if(response.statutCode == 200){
             console.log("yasm")
+        winston.info(`Status=${response.statutCode} - message = ${response.Success} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
         res.status(200).json({'succe': response.Success});
         } else {
             console.log("Nawel")
+            winston.error(`Status=${response.statutCode} - message = ${response.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
         res.status(response.statutCode).json({'error': response.error}); 
         }
        
@@ -162,6 +179,7 @@ router.post('/validRejetVirement',(req,res) =>{
     
     ;}
     else {
+        winston.error(`Status=${OauthResponse.statutCode} - message = ${OauthResponse.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
         res.status(OauthResponse.statutCode).json({'error': OauthResponse.error});
     }
 })
@@ -190,11 +208,13 @@ router.get('/justificatif',(req,res) =>{
                     res.sendFile(Justificatif, {"root": chemin});
                      
                } else {
+                winston.error(`Status=${response.statutCode} - message = ${response.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
                 res.status(response.statutCode).json({'error': response.error}); 
                }
                
             });
         }else {
+            winston.error(`Status=${OauthResponse.statutCode} - message = ${OauthResponse.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
             res.status(OauthResponse.statutCode).json({'error': OauthResponse.error});
         }
     });

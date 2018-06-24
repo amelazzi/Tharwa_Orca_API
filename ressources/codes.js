@@ -1,5 +1,11 @@
-var codesucce=200
-var codenotfound=404
-var servererror=500
-exports.code ={codesucce,codenotfound,servererror}
+var SUCCESS=200
+var CREATED = 201
+var NOT_FOUND=404
+var FORBIDDEN =403
+var INTERNAL_ERROR=500
+var BAD_REQUEST = 400
+var UNOTHORIZED = 401
+var CONFLICT = 409
+
+exports.code ={SUCCESS,CREATED,NOT_FOUND,FORBIDDEN,INTERNAL_ERROR,BAD_REQUEST,UNOTHORIZED,CONFLICT}
 

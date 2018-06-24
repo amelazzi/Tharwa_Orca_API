@@ -103,8 +103,13 @@ return valeur;
 
 function VirCourDevis(par,Montant,emmeteur,destinataire,Motif,Nom,Type1,Type2,idcom,call){
     conversion(Montant,par,function(resultat){ //conversion du montant vers l'euro
-    
-                    sequelize.query('exec Virement_local $montant,$montant2,$emmeteur,$recepteur,$motif,$nom,null,null,$type1,$type2,$id',
+         if (Type1!=0){
+
+             if (par==2)
+             {
+                conversion(Montant*0.015,2,function(resultat2){
+                    console.log("commission , montant  "+resultat2+"   "+resultat)
+                    sequelize.query('exec Virement_local $montant,$montant2,$emmeteur,$recepteur,$motif,$nom,null,null,$type1,$type2,$id,$montantcom',
                     {
                           bind: {
                                  montant: Montant,
@@ -115,7 +120,8 @@ function VirCourDevis(par,Montant,emmeteur,destinataire,Motif,Nom,Type1,Type2,id
                                 nom: Nom,
                                 type1:Type1,
                                 type2:Type2,
-                                id:idcom
+                                id:idcom,
+                                montantcom: resultat2
                                    }
                             }).then((res) => {
                                 call(null,res);   
@@ -123,13 +129,78 @@ function VirCourDevis(par,Montant,emmeteur,destinataire,Motif,Nom,Type1,Type2,id
                                 console.log(err);
                                 call(err,null);  
                             });
+                        
+
                 });
+             }
+             else {
+                conversion(Montant*0.015,3,function(resultat2){
+                    sequelize.query('exec Virement_local $montant,$montant2,$emmeteur,$recepteur,$motif,$nom,null,null,$type1,$type2,$id,$montantcom',
+                    {
+                          bind: {
+                                 montant: Montant,
+                                 montant2:resultat,
+                                emmeteur: emmeteur,
+                                recepteur : destinataire,
+                                motif : Motif,
+                                nom: Nom,
+                                type1:Type1,
+                                type2:Type2,
+                                id:idcom,
+                                montantcom: resultat2
+                                   }
+                            }).then((res) => {
+                                call(null,res);   
+                            }).catch(err => {
+                                console.log(err);
+                                call(err,null);  
+                            });
+                        
+
+                });
+
+                
+
+             }
+
+           
+
+            }
+         else {
+         
+    
+                    commissionmontant=Montant*0.02
+                    console.log("commissio "+commissionmontant+"  Type 1 et type 2 = "+Type1+"  "+Type2)
+                    sequelize.query('exec Virement_local $montant,$montant2,$emmeteur,$recepteur,$motif,$nom,null,null,$type1,$type2,$id,$montantCom',
+                    {
+                          bind: {
+                                 montant: Montant,
+                                 montant2:resultat,
+                                emmeteur: emmeteur,
+                                recepteur : destinataire,
+                                motif : Motif,
+                                nom: Nom,
+                                type1:Type1,
+                                type2:Type2,
+                                id:idcom,
+                                montantCom : commissionmontant
+                                   }
+                            }).then((res) => {
+                                call(null,res);   
+                            }).catch(err => {
+                                console.log(err);
+                                call(err,null);  
+                            });
+                        }
+                });
+
 
 }
 function VirCourEpar(Montant,emmeteur,destinataire,Motif,Nom,Type1,Type2,idcom,call){
     
-    
-                    sequelize.query('exec Virement_local $montant,$montant2,$emmeteur,$recepteur,$motif,$nom,null,null,$type1,$type2,$id',
+           if ( Type1==1)  montantCommision= Montant*0.001
+           else montantCommision= 0
+                    sequelize.query('exec Virement_local $montant,$montant2,$emmeteur,$recepteur,$motif,$nom,null,null,$type1,$type2,$id,$montantCom',
                     {
                           bind: {
                             montant: Montant,
@@ -140,7 +211,8 @@ function VirCourEpar(Montant,emmeteur,destinataire,Motif,Nom,Type1,Type2,idcom,c
                            nom: Nom,
                            type1:Type1,
                            type2:Type2,
-                           id:idcom
+                           id:idcom,
+                           montantCom: montantCommision
                                    }
                             }).then((res) => {
                                 call(null,res);   
@@ -256,6 +328,114 @@ function validerRejeterVirement(Code,CompteEmmett,CompteDestin,Statut,Idcomm,Mon
         call(err,null);  
     });
 }
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////Ajout de commissions mensuelles ///////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////::
+var schedule = require('node-schedule');
+
+
+  var schedule = require('node-schedule');
+  var rule2 = new schedule.RecurrenceRule();
+  rule2.month = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  rule2.hour = 0;
+  rule2.minute = 0;
+
+   var  TarifCompteCourant ={};
+    var TarifCompteDollar ={};
+    var TarifCompteEpargne={};
+    var TarifCompteEuro={};
+    var commission_devise={};
+    
+    schedule.scheduleJob(rule2, function(){
+  
+  async.series({
+
+    CompteCourant(callback){ // recuperer le tarif menseul de la commission du compte courant 
+        TarifCommission.findOne({
+            attributes:['montant'],
+            where:{'Code' :7} })
+        .then((montantE) => {
+            CompteCourant=montantE.montant
+           callback();
+          }).catch(err => {
+        console.log(err) ;   
+        });
+    },
+    CompteEpargne(callback){ // recuperer le tarif mensuel de la commission du compte epargne 
+
+        TarifCommission.findOne({
+            attributes:['montant'],
+            where:{'Code' : 8} })
+        .then((montantE) => {
+            CompteEpargne=montantE.montant
+           callback();
+          }).catch(err => {
+        console.log(err) ;   
+        });
+    },
+    CompteEuro(callback){ // recuperer le tarif mensuel de la commisssion du compte euro et le convertir vers l'euro 
+
+    TarifCommission.findOne({
+        attributes:['montant'],
+        where:{'Code' : 9} })
+    .then((montantEU) => {
+        commission_devise=montantEU.montant
+        conversion(montantEU.montant,0,function(resultat){
+            CompteEuro=resultat
+            callback();
+        });
+        
+      }).catch(err => {
+    console.log(err) ; 
+
+    });
+    },
+    CompteDollar(callback){ //recuperer le tarif mensuel de la commisssion du compte dollar et le convertir vers le dollar
+
+        TarifCommission.findOne({
+            attributes:['montant'],
+            where:{'Code' : 9} })
+        .then((montantD) => {
+            conversion(montantD.montant,1,function(resultat){
+                CompteDollar=resultat
+                callback();
+            });
+            
+          }).catch(err => {
+        console.log(err) ; 
+    
+        });
+    },
+    Commissionmensuel(callback){
+        
+          
+
+            sequelize.query('exec commission_mensuelle $courant,$epargne,$euro,$dollar,$devise',
+                    {
+                          bind: {
+                            courant: CompteCourant,
+                            epargne:CompteEpargne,
+                            euro: CompteEuro,
+                            dollar : CompteDollar,
+                            devise:commission_devise
+                          
+                                   }
+                            }).then((res) => {
+                                callback();   
+                            }).catch(err => {
+                                
+                                console.log(err);  
+                            });
+
+    
+    }
+});
+  });
+
+
+
 
 return {GetCompte,GetUser,getNextIdComm,VirCourDevis,VirCourEpar,historique,MontantCommission,
     GetNextIdCommission,GetPourcentageCommission,AddVirementClientTharwa,
