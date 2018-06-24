@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const Sequelize = require('sequelize');
 const http = require('http');
 var winston = require('./config/winston');
-var morgan = require('morgan');
+//var morgan = require('morgan');
 var appRoot = require('app-root-path');
 
 require('colors');
@@ -15,7 +15,7 @@ var server = express();
 //Config de Body-Parser
 server.use(bodyParser.urlencoded({extended:true}));
 server.use(bodyParser.json());
-server.use(morgan('combined', { stream: winston.stream }));
+//server.use(morgan('combined', { stream: winston.stream }));
 
 
 // config of database THARWA
@@ -123,6 +123,7 @@ const notificationController = require('./controleurs/notificationCtrl')(Notific
 const fcts=require('./controleurs/fcts')(Compte,Client,User,Virement,sequelize,TarifCommission,Commission);
 const tokenController = require('./controleurs/tokenCtrl');
 const usersController = require('./controleurs/usersCtrl')(User,Virement,sequelize);
+const statistiqueController = require('./controleurs/StatistiqueCntrl')(sequelize);
 const VirementController = require('./controleurs/VirementCntrl')(Virement,Compte,User,Client,fcts,sequelize,notificationController);
 
 const clientController = require('./controleurs/clientCtrl')(Client,User,Compte,sequelize,fcts);
@@ -134,6 +135,10 @@ const GestionnaireController = require('./controleurs/GestionnaireCntrl')(Vireme
 
 
 //Routes
+
+const StatistiqueRoute = require('./routes/statistiqueRoutes')(express,tokenController,statistiqueController);
+server.use('/statistique',StatistiqueRoute);
+
 const NotificationRoute = require('./routes/notificationRoutes')(express,tokenController,notificationController);
 server.use('/notification',NotificationRoute);
 
