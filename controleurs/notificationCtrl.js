@@ -113,7 +113,37 @@ function addNotificationVirementEmis(idUser,NomRecepteur,montant,etat,callback){
     })
     .catch(err => {
 
-         response = -1
+         response = false
+         callback(response)
+         console.error('Unable to add notification', err);
+     });
+
+}
+function addNotificationVirementEmistest(idUser,NomRecepteur,montant,etat,callback){
+    
+    //get current date and time 
+    var dt = datetime.create();
+    var formatted = dt.format('Y-m-dTH:M:S');
+    var dateCreation = formatted ;
+
+    var newNotification = Notification.create({
+       
+        IdUser : idUser,
+        Date : dateCreation,
+        Lue : 0,//0 pour notification non lue et 1 pour notification lue
+        Evenement:2 ,//evenement de virement émis
+        Montant: montant, //montant emis
+        ClientCorrespondant : NomRecepteur, //nom du client vers qui le virement est effectué
+        Etat : etat // 0 pour virement rejeté et 1 pour virement accepté
+
+    }).then(function(newNotification){
+         response = true
+         callback(response);
+        
+    })
+    .catch(err => {
+
+         response = false
          callback(response)
          console.error('Unable to add notification', err);
      });
@@ -153,6 +183,38 @@ function addNotificationVirementRecu(idUser,NomEmeteur,montant,callback){
     .catch(err => {
 
          response = -1
+         callback(response)
+         console.error('Unable to add notification', err);
+     });
+
+}
+
+
+
+function addNotificationVirementRecuTest(idUser,NomEmeteur,montant,callback){
+    
+    //get current date and time 
+    var dt = datetime.create();
+    var formatted = dt.format('Y-m-dTH:M:S');
+    var dateCreation = formatted ;
+
+    var newNotification = Notification.create({
+       
+        IdUser : idUser,
+        Date : dateCreation,
+        Lue : 0,//0 pour notification non lue et 1 pour notification lue
+        Evenement:3 ,//evenement de virement recu
+        Montant: montant, //montant reçu
+        ClientCorrespondant : NomEmeteur //nom du client  qui a effectué le virement recu.
+
+    }).then(function(newNotification){
+         response = true
+         callback(response);
+        
+    })
+    .catch(err => {
+
+         response = false
          callback(response)
          console.error('Unable to add notification', err);
      });
@@ -535,6 +597,7 @@ function addNotificationVirementEmistest(idUser,NomRecepteur,montant,etat,callba
 //exporter les procedure :
 return {addNotificationCompte,addNotificationVirementEntreSesComptes,addNotificationVirementEmis,
         addNotificationVirementRecu,addNotificationCommission,marquerNotificationLue,getUnreadNotifications,
-        createNotificationMessage,sendNotification,sendNotificationMail,addNotificationVirementEmistest};
+        createNotificationMessage,sendNotification,addNotificationVirementEmistest,addNotificationVirementRecuTest};
+
 
 }    

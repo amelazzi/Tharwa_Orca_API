@@ -16,24 +16,24 @@ var transporter = nodemailer.createTransport({
  }
 });
 const sendEmail = function (destinataire , object, corp){
- 
+  
 sgMail.setApiKey('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');
 const msg = {
- to: destinataire,
- from: 'tharwa.ebank@gmail.com',
- subject: object,
- html: '<b> '+corp+'</b>',
+  to: destinataire,
+  from: 'tharwa.ebank@gmail.com',
+  subject: object,
+  html: '<b> '+corp+'</b>',
 };
 sgMail.send(msg, function(err, json){
- if(err) { return console.error(err); }
- else console.log('Email envoye avec succès à '+destinataire);
+  if(err) { return console.error(err); }
+  else console.log('Email envoye avec succès');
 });
 /*
 var mailOptions = {
- from: 'tharwa.ebank@gmail.com',
- to: to,
- subject: object,
- html: '<b> '+corp+'</b>'
+  from: 'tharwa.ebank@gmail.com',
+  to: to,
+  subject: object,
+  html: '<b> '+corp+'</b>'
 };
 
 transporter.sendMail(mailOptions, function(error, info){

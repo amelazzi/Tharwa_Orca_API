@@ -3,6 +3,11 @@ const express = require("express");
 const bodyParser = require('body-parser');
 const Sequelize = require('sequelize');
 const http = require('http');
+var winston = require('./config/winston');
+var morgan = require('morgan');
+var appRoot = require('app-root-path');
+
+require('colors');
 
 //instanciation du serveur
 var server = express();
@@ -10,6 +15,7 @@ var server = express();
 //Config de Body-Parser
 server.use(bodyParser.urlencoded({extended:true}));
 server.use(bodyParser.json());
+server.use(morgan('combined', { stream: winston.stream }));
 
 
 // config of database THARWA
@@ -47,7 +53,7 @@ sequelize
 
 
 var serv2 = http.createServer(server).listen(8080,function (){
-   console.log("Serveur en écoute !");
+   console.log("Serveur en écoute ! sur 8080");
    console.log(__dirname)
 });
 
@@ -117,6 +123,7 @@ const notificationController = require('./controleurs/notificationCtrl')(Notific
 const fcts=require('./controleurs/fcts')(Compte,Client,User,Virement,sequelize,TarifCommission,Commission);
 const tokenController = require('./controleurs/tokenCtrl');
 const usersController = require('./controleurs/usersCtrl')(User,Virement,sequelize);
+const statistiqueController = require('./controleurs/StatistiqueCntrl')(sequelize);
 const VirementController = require('./controleurs/VirementCntrl')(Virement,Compte,User,Client,fcts,sequelize,notificationController);
 
 const clientController = require('./controleurs/clientCtrl')(Client,User,Compte,sequelize,fcts);
@@ -128,6 +135,10 @@ const GestionnaireController = require('./controleurs/GestionnaireCntrl')(Vireme
 
 
 //Routes
+
+const StatistiqueRoute = require('./routes/statistiqueRoutes')(express,tokenController,statistiqueController);
+server.use('/statistique',StatistiqueRoute);
+
 const NotificationRoute = require('./routes/notificationRoutes')(express,tokenController,notificationController);
 server.use('/notification',NotificationRoute);
 
@@ -148,10 +159,10 @@ const GestionnaireRoute = require('./routes/GestionnaireRoute')(express,Gestionn
 server.use('/gestionnaire',GestionnaireRoute);
 
 
-server.listen(8088,function (){
-   console.log("Serveur en écoute !");
+/*server.listen(8088,function (){
+   console.log("Serveur en écoute ! 8080 ");
    console.log(__dirname)
-});
+});*/
 
 module.exports = server; // pour le test 
 /*------------------ test --------------------*/
