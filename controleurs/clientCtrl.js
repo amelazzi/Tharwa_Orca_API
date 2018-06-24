@@ -273,7 +273,7 @@ function tauxChange(base,callback){
 
 }
 
-function makeNumAccount (middle,codeMonnaie){
+  function makeNumAccount (middle,codeMonnaie){
 
     if (middle.length == 1){
         middle = '00000'+middle;
@@ -290,6 +290,8 @@ function makeNumAccount (middle,codeMonnaie){
     var num = 'THW'+ middle + codeMonnaie;
     return num
   }
+  
+
   
     //exporter les services :
     return {addClient,getClientInfo,historique,tauxChange};
