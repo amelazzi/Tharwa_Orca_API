@@ -165,7 +165,8 @@ server.use('/gestionnaire',GestionnaireRoute);
 
 module.exports = server; // pour le test 
 /*------------------ test --------------------*/
-const testFct = require('./test/testFct')(fcts);
+//const testFct = require('./test/testFct')(fcts);
 //const accountFct = require('./test/testAccount')(compteAccess);
-//const clientTest  = require('./test/testClient')(clientController);
+//const clientTest  = require('./test/testClient')(clientController); 
 //const notificationTest  = require('./test/testNotification')(notificationController);
+ 

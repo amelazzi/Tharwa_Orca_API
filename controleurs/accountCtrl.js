@@ -4,6 +4,7 @@ var tokenController = require('./tokenCtrl');
 const sendgrid = require('../Utils/sendgrid')
 
 
+
 //exports
 module.exports = function(Client,Compte,compte_access,sequelize) {
 
@@ -367,13 +368,13 @@ function getAccountOwner (numCompte, callback){
 
     Compte.findOne(
         {
-            attributes:['IdUser'],
+            attributes:['IdUser','TypeCompte'],
             where: { 'Num' : numCompte}
         }
     ).then((accountFound)=>{
         if(accountFound){
            
-            callback(accountFound.IdUser)
+            callback(accountFound.IdUser,accountFound.TypeCompte)
 
         }else {
 
@@ -387,7 +388,171 @@ function getAccountOwner (numCompte, callback){
 }
 
 
+/*-----------------------------------------------------------------------------------------------------------------------*/
+
+/*-------------------------------prodédure de validation d'un compte banquire ---------------------------------*/
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
+function blocAccount(numAccout,motif,callback){
+    
+       
+    Compte.findOne(
+      {
+        attributes:['Num','Etat','IdUser','TypeCompte'],
+        where: {  'Num' : numAccout }
+      }
+    ).then(function(account){
+    
+        if (account){
+            if(account.Etat == 1){
+                sequelize.query('Update Compte set Etat=3 where Num=$num',
+                {
+                      bind: {
+                             num:numAccout
+                            }
+                }).then(function() {
+                    var type;
+                    switch(account.TypeCompte)
+                    {
+                        case 0: type='courant' 
+                        break;
+                        case 1: type='epargne' 
+                        break;
+                        case 2: type='devise euro' 
+                        break;
+                        case 3: type='devise dollar' 
+                        break; 
+                    }
+                    sendgrid.sendEmail(account.IdUser,"Notification THARWA","Votre compte "+type+" a été bloqué.</br>Motif de blocage : "+motif);
+
+                    response = {
+                        'statutCode' : 200, // compte bloqué
+                    }
+                    callback(response);
+                    
+                }).catch(err => {
+
+                    console.log(err);
+                    response = {
+                        'statutCode' : 500, // erreur interne
+                        'error':'Unable to validate account'
+                    }
+                    callback(response);
+                });
+            } else {
+                if(account.Etat == 3){
+                    response = {
+                        'statutCode' : 400, //bad request
+                        'error'  : 'account is already blocked'           
+                       }
+                    callback(response);
+                }else {
+
+                    response = {
+                        'statutCode' : 400, //bad request
+                        'error'  : 'account is not active'           
+                       }
+                    callback(response);
+                }
+                
+            }
+        }
+        else{
+            response = {
+                'statutCode' : 404, //not found
+                'error'  : 'account not found'           
+               }
+            callback(response);
+        }
+
+    }).catch((err)=>{
+        console.log(err);
+        response = {
+            'statutCode' : 500, // erreur interne
+            'error':'Unable to validate account'
+        }
+        callback(response);
+    });
+}
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
+
+/*-------------------------------prodédure de déblocage d'un compte banquire ---------------------------------*/
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
+function deblocAccount(numAccout,motif,callback){
+    
+       
+    Compte.findOne(
+      {
+        attributes:['Num','Etat','IdUser','TypeCompte'],
+        where: {  'Num' : numAccout }
+      }
+    ).then(function(account){
+    
+        if (account){
+            if(account.Etat == 3){
+                sequelize.query('Update Compte set Etat=1 where Num=$num',
+                {
+                      bind: {
+                             num:numAccout
+                            }
+                }).then(function() {
+                    var type;
+                    switch(account.TypeCompte)
+                    {
+                        case 0: type='courant' 
+                        break;
+                        case 1: type='epargne' 
+                        break;
+                        case 2: type='devise euro' 
+                        break;
+                        case 3: type='devise dollar' 
+                        break; 
+                    }
+                    sendgrid.sendEmail(account.IdUser,"Notification THARWA","Votre compte "+type+" a été débloqué.</br>Motif de déblocage : "+motif);
+
+                    response = {
+                        'statutCode' : 200, // compte validé
+                    }
+                    callback(response);
+                    
+                }).catch(err => {
+
+                    response = {
+                        'statutCode' : 500, // erreur interne
+                        'error':'Unable to validate account'
+                    }
+                    callback(response);
+                });
+            } else {
+                response = {
+                    'statutCode' : 400, //bad request
+                    'error'  : 'account is not blocked'           
+                   }
+                callback(response);
+            }
+        }
+        else{
+            response = {
+                'statutCode' : 404, //not found
+                'error'  : 'account not found'           
+               }
+            callback(response);
+        }
+
+    }).catch((err)=>{
+        response = {
+            'statutCode' : 500, // erreur interne
+            'error':'Unable to validate account'
+        }
+        callback(response);
+    });
+}
+
+
+
 //exports :
-return {CreateNewBanqueAccount,validateAccount,getClientAccounts,getCompteNonValide,rejectAccount,getAccountOwner};
+return {CreateNewBanqueAccount,validateAccount,getClientAccounts,getCompteNonValide,rejectAccount,getAccountOwner,blocAccount,deblocAccount};
 
 }

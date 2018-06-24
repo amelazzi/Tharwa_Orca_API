@@ -239,6 +239,13 @@ function getUserInfo  (UserId,callback){
             
 }
 
+function changerMDP (userId,nouveauMDP){
+
+   
+
+}
+
+
     //exporter les services :
-    return {BankerInscription,getUserInfo,FileUpload,createUserAccount};
+    return {BankerInscription,getUserInfo,FileUpload,createUserAccount,changerMDP};
 }

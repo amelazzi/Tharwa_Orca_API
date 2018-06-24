@@ -27,7 +27,7 @@ function addNotificationCompte(idUser,type,etat,callback){
         Lue : 0,//0 pour notification non lue et 1 pour notification lue
         Evenement:0 ,//evenement sur un compte bancaire
         TypeCompteEmetteur : type, //type du compte bancaire à rejeter ou à accepter
-        Etat : etat // 0 pour evenement de reject et 1 pour evenement d'acceptation
+        Etat : etat // 0 pour evenement de reject et 1 pour evenement d'acceptation, 3 : evenement de blocage, 2 : evenement de déblocage
 
     }).then(function(newNotification){
          response = newNotification.IdNotification

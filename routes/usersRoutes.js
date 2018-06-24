@@ -92,9 +92,31 @@ module.exports = function(express,tokenController,usersController,clientControll
 
 /*-----------------------------------------------------------------------------------------------------------------------*/   
 
-/*----------------------------------Service pour récupérer les informations d'un client---------------------------------*/
+/*----------------------------------Service pour modifier le mot de passe---------------------------------*/
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
+router.put('/mdp',(req,res) =>{
 
+    const token = req.headers['token']; //récupérer le Access token
+           
+        tokenController(token, function(OauthResponse){
+            if (OauthResponse.statutCode == 200){
+                 usersController.changerMDP(OauthResponse.userId,nouveauMDP,(response)=>{
+                   if(response.statutCode == 200){
+                    res.status(200).json({'userId': response.userId,
+                                          'userName': response.userName,
+                                          'type' : response.type});
+                   } else {
+                    res.status(response.statutCode).json({'error': response.error}); 
+                   }
+                   
+                });
+            }else {
+                res.status(OauthResponse.statutCode).json({'error': OauthResponse.error});
+            }
+        });
+   
+    
+});
     return router;
 }
