@@ -21,6 +21,7 @@ router.get('/info',(req,res) =>{
                         Adresse = response.Adresse;
                         Type = response.Type;
                         Photo = response.Photo;
+                        Tel = response.Tel
                         accountController.getClientAccounts(OauthResponse.userId,(response2)=>{
                             if (response2.statutCode == 200){
                                 res.status(response2.statutCode).json({ 'id':OauthResponse.userId,
@@ -29,7 +30,8 @@ router.get('/info',(req,res) =>{
                                                                         'Fonction': Fonction,
                                                                         'Adresse': Adresse,
                                                                         'Type' : Type,
-                                                                        'comptes': response2.Comptes});
+                                                                        'comptes': response2.Comptes,
+                                                                        'Tel' : Tel});
                             }else{
                                 res.status(response2.statutCode).json({'error': response2.error});
                             }

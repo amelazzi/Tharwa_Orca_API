@@ -163,6 +163,8 @@ server.use('/gestionnaire',GestionnaireRoute);
    console.log(__dirname)
 });*/
 
+
+
 module.exports = server; // pour le test 
 /*------------------ test --------------------*/
 //const testFct = require('./test/testFct')(fcts);

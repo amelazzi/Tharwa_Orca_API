@@ -162,16 +162,39 @@ function getClientInfo (clientId,callback){
     }).then( (clientFound)=>{
 
         if(clientFound){
-            response = {
-                'statutCode' : 200, // success
-                'Nom':clientFound.Nom,
-                'Prenom': clientFound.Prenom,
-                'Fonction' : clientFound.Fonction,
-                'Adresse':clientFound.Adresse,
-                'Type' : clientFound.Type ,
-                'Photo'  : clientFound.Photo        
-            }
-            callback(response);
+            User.findOne({
+                attributes:['numTel'],
+                where: {  'userId' : clientId}
+            }).then((userFound)=>{
+                if(userFound){
+                    response = {
+                        'statutCode' : 200, // success
+                        'Nom':clientFound.Nom,
+                        'Prenom': clientFound.Prenom,
+                        'Fonction' : clientFound.Fonction,
+                        'Adresse':clientFound.Adresse,
+                        'Type' : clientFound.Type ,
+                        'Photo'  : clientFound.Photo ,
+                        'Tel' :       userFound.numTel
+                    }
+                    callback(response);
+                }else {
+                    response = {
+                        'statutCode' : 404, //not Found
+                        'error':'User not found'          
+                    }
+                    callback(response);
+                }
+                
+            }).catch((err)=>{
+                console.log(err);
+                response = {
+                    'statutCode' : 500, 
+                    'error':'Can\'t verify client'        
+                }
+                callback(response);
+            });
+            
         }else {
             response = {
                 'statutCode' : 404, //not Found

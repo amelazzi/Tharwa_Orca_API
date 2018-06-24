@@ -9,6 +9,9 @@ var upload = multer()
 var Codes = require('../ressources/codes');
 const sendgrid = require('../Utils/sendgrid');
 var Erreur_francais = require('../ressources/erreur_francais');
+var fs = require('fs');
+var parser = require('xml2js').Parser({explicitArray : false});
+var  xml2js = require('xml2js');
 //Routes
 module.exports = function(Virement,Compte,User,Client,fcts,sequeliz,notificationController) {
 
@@ -681,7 +684,32 @@ function getJustificatif (userId,codevirement,callback){
 
 }
 
-return {TranferClientTH,Virement_local,Listes_virements_non_traites,validerRejeterVirement,getJustificatif};
+/*-----------------------------------------------------------------------------------------------------------------------*/   
+
+/*--------------------------Procedure pour parser un fichier xml de virement (to json)----------------------*/
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
+function xmlParse(cheminFichier,callback){
+
+   fs.readFile(cheminFichier, 'utf-8', function (err, data){
+        if(err) console.log(err);
+        parser.parseString(data, function(err, result){
+            if(err) console.log(err);
+            console.log(JSON.stringify(result)); 
+            json = JSON.stringify(result)
+            callback(json)
+        });
+    });  
+}
+
+function xmlCreator(jsonObj,callback){
+      
+      var builder = new xml2js.Builder();
+      var xml = builder.buildObject(jsonObj);
+      console.log(xml)
+      callback(xml)
+}
+return {TranferClientTH,Virement_local,Listes_virements_non_traites,validerRejeterVirement,getJustificatif,xmlParse,xmlCreator};
 
 }
 
