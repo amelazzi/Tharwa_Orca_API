@@ -22,11 +22,8 @@ router.post('/new',(req,res) =>{
                     winston.info(`${formatted} Status=400 - message = missing parameters - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
                     res.status(response.statutCode).json({'compte' : response.compte});
                  }else {
-<<<<<<< HEAD
-                    
-=======
+
                     winston.error(`${formatted} Status=400 - message = missing parameters - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
->>>>>>> 0cc3c0559bf78a0bf5c1f148982f0db3ad54a90b
                     res.status(response.statutCode).json({'error': response.error});
                  }
             })
