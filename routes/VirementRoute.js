@@ -151,7 +151,7 @@ router.post('/validRejetVirement',(req,res) =>{
     VirementController.validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,(response)=>{
         
         if(response.statutCode == 200){
-            console.log("yasm")
+            
         res.status(200).json({'succe': response.Success});
         } else {
             console.log("Nawel")

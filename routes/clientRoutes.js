@@ -133,6 +133,10 @@ router.post('/tauxChange',(req,res) =>{
     
 });
 
+
+
+
+
     //exports :
    return router;
 
