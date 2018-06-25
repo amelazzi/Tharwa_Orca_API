@@ -9,6 +9,10 @@ var upload = multer()
 var Codes = require('../ressources/codes');
 const sendgrid = require('../Utils/sendgrid');
 var Erreur_francais = require('../ressources/erreur_francais');
+var fs = require('fs');
+var parser = require('xml2js').Parser({explicitArray : false});
+var  xml2js = require('xml2js');
+const datetime = require('node-datetime');
 //Routes
 module.exports = function(Virement,Compte,User,Client,fcts,sequeliz,notificationController) {
 
@@ -248,7 +252,13 @@ function TranferClientTH(iduseremmetteur,montant,imagePath,Comptedest,Motif,rep)
 
     })
 
-}
+  } else {
+    response = {
+        'statutCode' : Codes.code.BAD_REQUEST, // success
+        'Success': "Le destinataire n'est pas un client THARWA"       
+    }
+    rep(response);
+  }
 }
 
 
@@ -645,6 +655,11 @@ function validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,rep
 }
 })
 }
+/*-----------------------------------------------------------------------------------------------------------------------*/   
+
+/*--------------------------Procedure pour parser un fichier xml de virement (to json)----------------------*/
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
 
 function getJustificatif (userId,codevirement,callback){
     
@@ -681,7 +696,276 @@ function getJustificatif (userId,codevirement,callback){
 
 }
 
-return {TranferClientTH,Virement_local,Listes_virements_non_traites,validerRejeterVirement,getJustificatif};
+/*-----------------------------------------------------------------------------------------------------------------------*/   
+
+/*--------------------------Procedure pour parser un fichier xml de virement (to json)----------------------------------*/
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
+function xmlParse(cheminFichier,callback){
+
+   fs.readFile(cheminFichier, 'utf-8', function (err, data){
+        if(err) console.log(err);
+        parser.parseString(data, function(err, result){
+            if(err) console.log(err);
+            console.log(JSON.stringify(result)); 
+            json = JSON.stringify(result)
+            callback(json)
+        });
+    });  
+}
+
+/*-----------------------------------------------------------------------------------------------------------------------*/   
+
+/*--------------------------Procedure pour produire un fichier xml de virement (from json)----------------------------------*/
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
+
+    function xmlCreator(jsonObj,callback){
+        
+        var builder = new xml2js.Builder();
+        var xml = builder.buildObject(jsonObj);
+        console.log(xml)
+        callback(xml)
+    }
+
+/*-----------------------------------------------------------------------------------------------------------------------*/   
+
+/*--------------------------  Procedure pour virer vers un client d'une autre banque ------------------------------------------*/
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
+
+    function  virementExterne (iduseremmetteur,montant,imagePath,Comptedest,nomDestinataire,Motif,rep){
+
+        
+          
+
+        if(Comptedest.substr(0, 3)!='THW'){ // Vérifier si le compte destinaire n'est pas du type THARWA
+        
+
+            async.series({ 
+                pourcentagecommission(callback){//next commission
+                    fcts.GetPourcentageCommission(5,function(err,pourcentage){
+                        if(err){
+                            console.log(err)
+                            response = {
+                                'statutCode' : Codes.code.NOT_FOUND, // success
+                                'error': Erreur_francais.erreur_francais.commissioninexistante         
+                             }
+                            rep(response); 
+                        }
+                        else {
+                            pourcentagecomm=pourcentage // pourcentagecomm
+                            callback()
+                        }
+                                        
+                    })
+                },
+        
+                getnextidcommission(callback){
+                    fcts.GetNextIdCommission(function(idcoomc){ // paramètre de retour
+                        residcomm=idcoomc //residcomm
+                        callback()
+                    })
+                },
+        
+                GetNomEmmetteur(callback){ // récupération nom emmetteur
+                    fcts.GetUser(iduseremmetteur,function(err, nomEmmetteur){
+                        if (err){
+                            console.log(err)
+                            response = {
+                                'statutCode' : Codes.code.NOT_FOUND, // success
+                                'error': Erreur_francais.erreur_francais.nonemmetteurnonexistant        
+                            }
+                            rep(response); 
+                         }
+                         else{
+                            nomemmetteur= nomEmmetteur.Nom+' '+nomEmmetteur.Prenom
+                            console.log("le nom de l emetteur est "+ nomemmetteur)
+                            callback()
+                         }
+        
+                    })
+                },  
+        
+            getCompteBalancee(callback){ // recupération numéro compte emmetteur
+                    fcts.GetCompte(iduseremmetteur,0,function(err,comptebalance){
+                        if(err){
+                            console.log(err)
+                            response = {
+                                'statutCode' : Codes.code.NOT_FOUND, // success
+                                'error': Erreur_francais.erreur_francais.numcompteemmetteurnonexistant
+                            }
+                            rep(response); 
+                        
+                        }
+                        else{
+                                
+                                if ((comptebalance.Num.substr(0, 3)=='THW')&&(comptebalance.Balance>montant)&&(comptebalance.Num != Comptedest)){
+                                    numcompteemmetteur=comptebalance.Num                  
+                                    callback()
+                                }
+                                else{
+                                    if(comptebalance.Num.substr(0, 3)!='THW'){
+                                        response = {
+                                            'statutCode' : Codes.code.NOT_FOUND, 
+                                            'error': Erreur_francais.erreur_francais.emmetteurnonTHARWA
+                                        }
+                                        rep(response); 
+        
+                                    }
+                                    else if(comptebalance.Num == Comptedest){
+                                        response = {
+                                            'statutCode' : Codes.code.BAD_REQUEST, 
+                                            'error': Erreur_francais.erreur_francais.comptedestinataireinvalide
+                                        }
+                                        rep(response); 
+                                    }
+                                    else{
+                                        response = {
+                                            'statutCode' : Codes.code.NOT_FOUND, 
+                                            'error': Erreur_francais.erreur_francais.balanceinsuffisante
+                                        }
+                                        rep(response); 
+        
+                                    }
+                               
+                                }
+                            
+                        }
+                    })            
+                },    
+               
+                function(callback){
+                                       
+                   if (montant<200000){
+                        console.log("creation des xml")
+                        var dt = datetime.create();
+                        var formatted = dt.format('YmdHM');
+                        var formatted2 = dt.format('Y-m-dTH:M:S');
+                        var date = formatted ; 
+                        var date2 = formatted2
+                        var numVirement = numcompteemmetteur+montant+Comptedest+date
+                        fcts.emettreVirementExterne(date2,numVirement,numcompteemmetteur,nomemmetteur,Comptedest,nomDestinataire,montant,Motif,imagePath,residcomm,pourcentagecomm,(responseFct)=>{
+
+                            if(responseFct.statutCode == 200){
+                                creatXmlVirementEmis (date,numVirement,nomemmetteur,numcompteemmetteur,nomDestinataire,Comptedest,montant,Motif,(err)=>{
+                                    response = {
+                                        'statutCode' : Codes.code.SUCCESS, // success
+                                        'succes': "Virement pris"         
+                                    }
+                                    rep(response); 
+                                })
+                            } else {
+                                response = {
+                                    'statutCode' : responseFct.statutCode, // success
+                                    'error': responseFct.error        
+                                }
+                                rep(response); 
+                            }
+                        })
+                       
+                    }
+                    else{
+        
+                        if (imagePath.substr(0,13 )=='justificatifs'){
+
+                            console.log("require justificatif")
+
+                            fcts.AddVirementClientTharwaEnAttente(montant,Comptedest,numcompteemmetteur,Motif,nomemmetteur,imagePath,nomrecepteur,pourcentagecomm,residcomm,function(err,res){
+                                if (err){  
+                                    console.log(err)                      
+                                    response = {
+                                        'statutCode' : Codes.code.NOT_FOUND, // success
+                                        'error': Erreur_francais.erreur_francais.vir_justif_noneffetue         
+                                    }
+                                    rep(response); 
+                                 }
+                                 else{
+                                    response = {
+                                        'statutCode' : Codes.code.SUCCESS, // success
+                                        'Success': Erreur_francais.erreur_francais.vir_justif_effetue      
+                                    }
+                                    rep(response)
+                                 }
+                            
+                            })
+        
+                        }
+                        else{
+                            response = {
+                                'statutCode' : Codes.code.BAD_REQUEST, 
+                                'Success': Erreur_francais.erreur_francais.justificatifmanquant        
+                            }
+                            rep(response);
+                        }
+                      
+                    }//fin funtion
+                } 
+            
+        
+        
+            })
+        
+        } else {
+
+            response = {
+                'statutCode' : Codes.code.BAD_REQUEST, 
+                'Success': "le destinataire est un client THARWA"       
+            }
+            rep(response);
+        }
+        
+    }
+
+/*-----------------------------------------------------------------------------------------------------------------------*/   
+
+/*--------------------------  Procedure pour générer le fichier xml d'un virement emis------------------------------------*/
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
+
+function creatXmlVirementEmis (date,NumVirement,NomEmetteur,NumCompteEmetteur,NomDestinataire,NumCompteDestinataire,montant,motif,callback){
+
+    
+    var banqueEmetteur = NumCompteEmetteur.substr(0, 3)
+    var banqueRecepteur = NumCompteDestinataire.substr(0, 3)
+    
+    var jsonObj = {
+                        "virement":
+                    
+                        {
+                        "numero":NumVirement,
+                        "date":date,
+                        "titulaire":{
+                                    "nom":NomEmetteur,
+                                    "banque":banqueEmetteur,
+                                    "compte":NumCompteEmetteur
+                                    },
+                        "destinataire":{
+                                        "nom":NomDestinataire,
+                                        "banque":banqueRecepteur,
+                                        "compte":NumCompteDestinataire
+                                        },
+                        "montant":montant,
+                        "motif":motif
+                        }
+                    }
+    xmlCreator(jsonObj,(xml) => {
+        chemin = './Virements_externes_emis/'+NumVirement+'n.xml'
+        fs.appendFile( chemin, xml, (err) => {
+            if (err){
+                throw err;
+                callback(err)
+            } 
+            console.log('The file has been saved!');
+            callback(null)
+          });
+
+    });
+}
+
+
+return {TranferClientTH,Virement_local,Listes_virements_non_traites,validerRejeterVirement
+         ,getJustificatif,xmlParse,xmlCreator,virementExterne};
 
 }
 

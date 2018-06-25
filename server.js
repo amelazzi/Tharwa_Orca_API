@@ -160,7 +160,7 @@ server.use('/clients',clientRoute);
 const VirementRoute = require('./routes/VirementRoute')(express,__dirname,VirementController,tokenController,usersController);
 server.use('/virement',VirementRoute);
 
-const GestionnaireRoute = require('./routes/GestionnaireRoute')(express,GestionnaireController,tokenController);
+const GestionnaireRoute = require('./routes/GestionnaireRoute')(accountController,express,GestionnaireController,tokenController);
 server.use('/gestionnaire',GestionnaireRoute);
 
 
@@ -168,6 +168,8 @@ server.use('/gestionnaire',GestionnaireRoute);
    console.log("Serveur en écoute ! 8080 ");
    console.log(__dirname)
 });*/
+
+
 
 module.exports = server; // pour le test 
 /*------------------ test --------------------*/

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<virement>
+  <numero>THW000004DZD4000BNA0000012018062503:14</numero>
+  <date>201802041053</date>
+  <titulaire>
+    <nom>meriem meguelleti</nom>
+    <banque>THW</banque>
+    <compte>THW000004DZD</compte>
+  </titulaire>
+  <destinataire>
+    <nom>Amel Azzi</nom>
+    <banque>BNA</banque>
+    <compte>BNA000001</compte>
+  </destinataire>
+  <montant>4000</montant>
+  <motif>test</motif>
+</virement>

@@ -387,6 +387,35 @@ function getAccountOwner (numCompte, callback){
 
 }
 
+/*-----------------------------------------------------------------------------------------------------------------------*/   
+
+/*-------------------------Procedure pour récupérer les info  d'un compte bancaire------------------------------------*/
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
+
+function getAccountInfo (numCompte, callback){
+
+    Compte.findOne(
+        {
+            //attributes:['IdUser','TypeCompte','Balance','DateCreation','CodeMonnaie','IdUser','Etat','TypeCompte'],
+            where: { 'Num' : numCompte}
+        }
+    ).then((accountFound)=>{
+        if(accountFound){
+           
+            callback(null,accountFound)
+
+        }else {
+
+            callback(404,null)
+        }
+    }).catch((err)=>{
+        console.log (err)
+        callback(err,null)
+    });
+
+}
+
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
@@ -553,6 +582,6 @@ function deblocAccount(numAccout,motif,callback){
 
 
 //exports :
-return {CreateNewBanqueAccount,validateAccount,getClientAccounts,getCompteNonValide,rejectAccount,getAccountOwner,blocAccount,deblocAccount};
+return {CreateNewBanqueAccount,validateAccount,getClientAccounts,getCompteNonValide,rejectAccount,getAccountOwner,blocAccount,deblocAccount,getAccountInfo};
 
 }

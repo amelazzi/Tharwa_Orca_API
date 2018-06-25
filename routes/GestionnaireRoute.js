@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 var winston = require('../config/winston');
 const datetime = require('node-datetime');
 
 module.exports = function(express,GestionnaireController,tokenController){
+=======
+
+var winston = require('../config/winston');
+const datetime = require('node-datetime');
+module.exports = function(accountController,express,GestionnaireController,tokenController){
+>>>>>>> ae6bd3b38ea167dc72e6824718ad029389382532
    
     const router = express.Router();
     
@@ -16,6 +23,9 @@ module.exports = function(express,GestionnaireController,tokenController){
         var dt = datetime.create();
         var formatted = dt.format('Y/m/d:H:M:S');
         const token = req.headers['token']; //récupérer le Access token
+        
+        var dt = datetime.create();
+        var formatted = dt.format('Y/m/d:H:M:S');
          
     tokenController(token, function(OauthResponse){
         if (OauthResponse.statutCode == 200){
@@ -47,6 +57,8 @@ router.get('/listBanquiers',(req,res) =>{
     var dt = datetime.create();
         var formatted = dt.format('Y/m/d:H:M:S');
     const token = req.headers['token']; //récupérer le Access token
+    var dt = datetime.create();
+        var formatted = dt.format('Y/m/d:H:M:S');
      
 tokenController(token, function(OauthResponse){
     if (OauthResponse.statutCode == 200){
@@ -73,6 +85,8 @@ router.get('/listVirementEx',(req,res) =>{
     var dt = datetime.create();
         var formatted = dt.format('Y/m/d:H:M:S');
     const token = req.headers['token']; //récupérer le Access token
+    var dt = datetime.create();
+        var formatted = dt.format('Y/m/d:H:M:S');
      
 tokenController(token, function(OauthResponse){
     if (OauthResponse.statutCode == 200){
@@ -102,6 +116,8 @@ router.put('/updateprofil',(req,res) =>{
     const token = req.headers['token']; //récupérer le Access token
     var name=req.body.username
     var tel=req.body.numtel
+    var dt = datetime.create();
+        var formatted = dt.format('Y/m/d:H:M:S');
      
 tokenController(token, function(OauthResponse){
     if (OauthResponse.statutCode == 200){
@@ -139,6 +155,8 @@ router.post('/addbanque',(req,res) =>{
     var RaisonSocial =req.body.RaisonSocial
     var Adresse = req.body.Adresse
     var Mail = req.body.Mail
+    var dt = datetime.create();
+        var formatted = dt.format('Y/m/d:H:M:S');
            
     tokenController(token, function(OauthResponse){
         if (OauthResponse.statutCode == 200){
@@ -180,6 +198,8 @@ router.post('/editbanque',(req,res) =>{
     var RaisonSocial =req.body.RaisonSocial
     var Adresse = req.body.Adresse
     var Mail = req.body.Mail
+    var dt = datetime.create();
+    var formatted = dt.format('Y/m/d:H:M:S');
            
     tokenController(token, function(OauthResponse){
         if(code==null ||RaisonSocial==null||Adresse==null ||Mail==null){
@@ -221,7 +241,8 @@ router.post('/deletebanque',(req,res) =>{
 
     const token = req.headers['token']; //récupérer le Access token
     var code = req.body.Code
-   
+    var dt = datetime.create();
+    var formatted = dt.format('Y/m/d:H:M:S');
            
     tokenController(token, function(OauthResponse){
         if(code==null){
@@ -238,6 +259,50 @@ router.post('/deletebanque',(req,res) =>{
                     res.status(response.statutCode).json({'error': response.error}); 
                 }              
             })
+          
+        }else {
+            winston.error(`${formatted} Status=${OauthResponse.statutCode} - message = ${OauthResponse.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);                
+            res.status(OauthResponse.statutCode).json({'error': OauthResponse.error});
+        }
+    });
+    
+});
+
+router.get('/infoCompte',(req,res) =>{
+    
+    const numCompte = req.query.Num
+    const token = req.headers['token']; //récupérer le Access token
+ //   const numCompte = req.headers['Num'];
+    var dt = datetime.create();
+    var formatted = dt.format('Y/m/d:H:M:S');
+    console.log(token)
+    console.log(numCompte)
+           
+    tokenController(token, function(OauthResponse){
+        
+        if (OauthResponse.statutCode == 200){
+            if(numCompte==null){
+                console.log(req.headers['Num'])
+                winston.error(`${formatted} Status=400 - message = missing parameters- originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);                
+                return res.status(400).json({'error':'missing parameters'}); //bad request
+            }else {
+                accountController.getAccountInfo(numCompte,(err,accountFound)=>{
+                    if(!err){
+                        winston.info(`${formatted} Status=200 - message = ${response.Success} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);                
+                        res.status(200).json({'compte': accountFound});
+                    } else {
+                        if(err == 404){
+                            winston.error(`${formatted} Status= 404 - message = Account not found - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);                
+                            res.status(404).json({'error': "account not found"}); 
+                        } else {
+                            winston.error(`${formatted} Status= 500 - message = ${response.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);                
+                           res.status(500).json({'error': "unable to verify account"}); 
+                        }
+                        
+                    }              
+                })
+            }
+            
           
         }else {
             winston.error(`${formatted} Status=${OauthResponse.statutCode} - message = ${OauthResponse.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);                
