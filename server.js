@@ -112,6 +112,7 @@ const Banque = sequelize.import(__dirname + "/models/Banque");
 const TarifCommission=sequelize.import(__dirname + "/models/TarifCommission");
 const Commission = sequelize.import(__dirname + "/models/Commission");
 const Notification = sequelize.import(__dirname + "/models/Notification");
+const OrdreVirement = sequelize.import(__dirname + "/models/OrdreVirement");
 
 //Acces aux données
 const compteAccess = require('./Data_access/Compte_access')(Compte,sequelize);
@@ -120,6 +121,8 @@ const compteAccess = require('./Data_access/Compte_access')(Compte,sequelize);
 const notificationController = require('./controleurs/notificationCtrl')(Notification,clientsConnectés,sequelize);
 
 const fcts=require('./controleurs/fcts')(Compte,Client,User,Virement,sequelize,TarifCommission,Commission);
+const ordreVirementController = require('./controleurs/ordreVirementCtrl')(OrdreVirement,Virement,Compte,User,Client,fcts,sequelize,notificationController,Commission);
+
 const tokenController = require('./controleurs/tokenCtrl');
 const usersController = require('./controleurs/usersCtrl')(User,Virement,sequelize);
 const statistiqueController = require('./controleurs/StatistiqueCntrl')(sequelize);
@@ -134,6 +137,9 @@ const GestionnaireController = require('./controleurs/GestionnaireCntrl')(Vireme
 
 
 //Routes
+
+const OrdreVirementRoute = require('./routes/ordreVirementRoutes')(express,tokenController,ordreVirementController);
+server.use('/ordreVirement',OrdreVirementRoute);
 
 const StatistiqueRoute = require('./routes/statistiqueRoutes')(express,tokenController,statistiqueController);
 server.use('/statistique',StatistiqueRoute);

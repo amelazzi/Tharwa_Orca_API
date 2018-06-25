@@ -1,3 +1,6 @@
+var winston = require('../config/winston');
+const datetime = require('node-datetime');
+
 module.exports = function(express,GestionnaireController,tokenController){
    
     const router = express.Router();
@@ -10,6 +13,8 @@ module.exports = function(express,GestionnaireController,tokenController){
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
     router.get('/listBanque',(req,res) =>{
+        var dt = datetime.create();
+        var formatted = dt.format('Y/m/d:H:M:S');
         const token = req.headers['token']; //récupérer le Access token
          
     tokenController(token, function(OauthResponse){
@@ -39,6 +44,8 @@ module.exports = function(express,GestionnaireController,tokenController){
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 router.get('/listBanquiers',(req,res) =>{
+    var dt = datetime.create();
+        var formatted = dt.format('Y/m/d:H:M:S');
     const token = req.headers['token']; //récupérer le Access token
      
 tokenController(token, function(OauthResponse){
@@ -63,6 +70,8 @@ tokenController(token, function(OauthResponse){
 });
 
 router.get('/listVirementEx',(req,res) =>{
+    var dt = datetime.create();
+        var formatted = dt.format('Y/m/d:H:M:S');
     const token = req.headers['token']; //récupérer le Access token
      
 tokenController(token, function(OauthResponse){
@@ -88,6 +97,8 @@ tokenController(token, function(OauthResponse){
 });
 
 router.put('/updateprofil',(req,res) =>{
+    var dt = datetime.create();
+        var formatted = dt.format('Y/m/d:H:M:S');
     const token = req.headers['token']; //récupérer le Access token
     var name=req.body.username
     var tel=req.body.numtel
@@ -119,6 +130,8 @@ tokenController(token, function(OauthResponse){
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 router.post('/addbanque',(req,res) =>{
+    var dt = datetime.create();
+        var formatted = dt.format('Y/m/d:H:M:S');
     console.log('ajour d une banque');
 
     const token = req.headers['token']; //récupérer le Access token
@@ -158,6 +171,8 @@ router.post('/addbanque',(req,res) =>{
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 router.post('/editbanque',(req,res) =>{
+    var dt = datetime.create();
+        var formatted = dt.format('Y/m/d:H:M:S');
     console.log('Modification d une banque');
 
     const token = req.headers['token']; //récupérer le Access token
@@ -200,6 +215,8 @@ router.post('/editbanque',(req,res) =>{
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 router.post('/deletebanque',(req,res) =>{
+    var dt = datetime.create();
+        var formatted = dt.format('Y/m/d:H:M:S');
     console.log('suppression d une banque');
 
     const token = req.headers['token']; //récupérer le Access token

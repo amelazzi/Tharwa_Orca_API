@@ -290,7 +290,8 @@ function AddVirementClientTharwaEnAttente(montant,dest,emetteur,Motif,nomemmette
 function getIdUser(comptee, callback){
     Compte.findOne({ // Récupération d'un numéro de compte et de son ID
     attributes:['Num','IdUser'],
-    where:{'Num' :comptee} })
+    where:{'Num' :comptee , 'TypeCompte': 0
+    ,'Etat':1} })
     .then((Compte1) => {        
         callback(null,Compte1);
        }).catch(err => {

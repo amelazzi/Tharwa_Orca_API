@@ -23,6 +23,11 @@ module.exports = function(sequelize, DataTypes) {
         key: 'IdUser'
       }
     }
+    ,
+    titre: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    }
   }, {
     createdAt: false,
     updatedAt: false,
