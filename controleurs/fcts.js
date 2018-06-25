@@ -10,10 +10,11 @@ function GetCompte(iduser,Type1,callback){
         attributes:['Num','Balance'],
         where:{'IdUser' :iduser, 
         'TypeCompte': Type1
-    ,'Etat':1} })
+    ,'Etat':1} })            
     .then((Compte1) => {
-        
-       callback(null,Compte1);
+        if(Compte1) callback(null,Compte1);
+        else callback("no compte matching "+iduser,null)
+       
       }).catch(err => {
         callback(err,null);});
 }
@@ -267,6 +268,7 @@ function AddVirementClientTharwa(montant, dest,compteemmetteur,Motif,nomemmetteu
     });
 
 }
+AddVirementClientTharwa
 function AddVirementClientTharwaEnAttente(montant,dest,emetteur,Motif,nomemmetteur,Justificatif,nomrecepteur,pourc,idcom,call){
     sequelize.query('exec AddVirementClientTharwaEnAttente $Montant, $CompteDestinataire, $CompteEmmetteur, $Motif, $NomEmetteur,$justificatif, null,  $NomDestinataire,$pourcentage,$commission',
     {
@@ -435,10 +437,104 @@ var schedule = require('node-schedule');
 });
   });
 
+  function emettreVirementExterne (date,numVirement,numcompteemmetteur,NomEmetteur,numCompteDestinataire,nomDestinataire,montant,motif,justificatif,idCommission,pourcentage,rep){
 
+    Compte.findOne({
+        attributes:['Balance'],
+        where:{'Num' :numcompteemmetteur} 
+    }).then((compteFound)=>{
+     
+     if(compteFound ){
+         commission = compteFound.Balance * pourcentage/100
+         balance = compteFound.Balance - (montant + commission)
+         var banqueDestinataire = numCompteDestinataire.substr(0, 3)
+         if(balance>=0){
+            sequelize.query('Update Compte set Balance= $balance where Num=$num',
+            {
+                 bind: {  num:numcompteemmetteur , balance : balance  }
+             }).then(
+              
+               Virement.create({
+                   Code : numVirement,
+                   Date : date,
+                   Statut : 1,
+                   Montant : montant,
+                   Justificatif : justificatif,
+                   NomEmetteur : NomEmetteur,
+                   CompteEmmetteur : numcompteemmetteur,
+                   BanqueEmmeteur : "THW",
+                   NomDestinataire : nomDestinataire,
+                   CompteDestinataire : numCompteDestinataire,
+                   BanqueDestinataire : banqueDestinataire,
+                   Type : 1,
+                   IdCommission : idCommission
+   
+               }).then((newVirement)=>{
+   
+                Commission.create({
+                    Id : idCommission,
+                    CodeCommission : 5,
+                    Date : date,
+                    Montant : commission,
+                    NumCompte : numcompteemmetteur
+                    
+                }).then((newCommision)=>{
+                    response = {
+                        'statutCode' : 200, // success
+                        'succes': ""         
+                    }
+                    rep(response);
 
+                }).catch((err)=>{
+                    response = {
+                        'statutCode' : Codes.code.INTERNAL_ERROR, // success
+                        'error': "Impossible d'effactuer le virement"         
+                    }
+                    rep(response);
+                })
+               }).catch((err)=>{
+                   response = {
+                       'statutCode' : Codes.code.INTERNAL_ERROR, // success
+                       'error': "Impossible d'effactuer le virement"         
+                   }
+                   rep(response);
+               })
+                 
+             ).catch((err)=>{
+                response = {
+                    'statutCode' : Codes.code.INTERNAL_ERROR, // success
+                    'error': "Impossible d'effactuer le virement"         
+                }
+                rep(response); 
+   
+             });
+         }else {
+            response = {
+                'statutCode' : 400, 
+                'error': "Balance insuffisante"         
+            }
+            rep(response);
+         }
+         
+     } else {
+        response = {
+            'statutCode' : 404, 
+            'error': "Compte emmetteur non trouvé"         
+        }
+        rep(response);
+     }
+
+     }).catch((err)=>{
+   
+         response = {
+             'statutCode' : Codes.code.INTERNAL_ERROR, 
+             'error': "Impossible d'effactuer le virement"         
+         }
+         rep(response);
+ });
+  }
 
 return {GetCompte,GetUser,getNextIdComm,VirCourDevis,VirCourEpar,historique,MontantCommission,
     GetNextIdCommission,GetPourcentageCommission,AddVirementClientTharwa,
-    AddVirementClientTharwaEnAttente,getIdUser,getVirement,validerRejeterVirement,conversion}
+    AddVirementClientTharwaEnAttente,getIdUser,getVirement,validerRejeterVirement,conversion,emettreVirementExterne}
 }
