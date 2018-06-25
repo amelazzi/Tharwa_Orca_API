@@ -229,6 +229,74 @@ router.get('/justificatif',(req,res) =>{
     });
 });
 
+/*-----------------------------------------------------------------------------------------------------------------------*/   
+
+/*------------------Service pour emettre un virement vers un client d'une autre banque ------------------------------*/
+
+/*-----------------------------------------------------------------------------------------------------------------------*/
+router.post('/externe',(req,res) =>{
+
+            
+            
+            usersController.FileUpload(req,res,'./justificatifs',(response)=>{
+                    var dt = datetime.create();
+                    var formatted = dt.format('Y/m/d:H:M:S');
+                    const token = req.headers['token']; //récupérer le Access token
+                    var nomDestinataire = req.body.nomDestinataire
+                    var numCompteDestinataire = req.body.numCompteDestinataire
+                    var montant=req.body.montant;
+                    var motif=req.body.motif;
+                    tokenController(token, function(OauthResponse){
+                        if (OauthResponse.statutCode == 200){
+                            if(nomDestinataire == null || numCompteDestinataire == null || montant== null || motif == null||montant<=0){
+                                winston.error(`${formatted} Status=400 - message = missing parameters - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
+                                return res.status(400).json({'error':'missing paraameters'}); //bad request
+                            }
+                            else{
+                                
+                                if (montant>=200000){
+                                    if(req.file != null){
+                                        imagePath =  req.file.path;
+                                        VirementController.virementExterne(OauthResponse.userId,montant,imagePath,numCompteDestinataire,nomDestinataire,motif,(response)=>{
+                                            if (response.statutCode==200){
+                                                winston.info(`${formatted} Status=${response.statutCode} - message = ${response.Success} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
+                                                res.status(200).json({'succes': response.Success});
+                                            }else{
+                                                winston.error(`${formatted} Status=${response.statutCode} - message = ${response.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
+                                                res.status(response.statutCode).json({'error': response.error}); 
+                                            }
+                                        })
+                                    }else {
+                                        winston.error(`${formatted} Status=404 - message = Justificatif manquant  - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
+                                        res.status(404).json({'error': "Justificatif manquant"});
+                                    }
+                                }else {
+                                    
+                                    imagePath=null
+                                    VirementController.virementExterne(OauthResponse.userId,montant,imagePath,numCompteDestinataire,nomDestinataire,motif,(response)=>{
+                                        if(response.statutCode == 200){
+                                            winston.info(`${formatted} Status=${response.statutCode} - message = ${response.succe} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
+                                            res.status(200).json({'succes': response.succes});
+                                        } else {
+                                            winston.error(`${formatted} Status=${response.statutCode} - message = ${response.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
+                                            res.status(response.statutCode).json({'error': response.error}); 
+                                        }
+                                 
+                                    });
+                                }
+                               
+                            }
+                        }else {
+                            winston.error(`${formatted} Status=${OauthResponse.statutCode} - message = ${OauthResponse.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
+                            res.status(OauthResponse.statutCode).json({'error': OauthResponse.error});
+                        }
+                    });   
+            })
+           
+
+});
+
+
 
 return router;
 }
