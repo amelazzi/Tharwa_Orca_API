@@ -1,13 +1,19 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 var winston = require('../config/winston');
 const datetime = require('node-datetime');
 
 module.exports = function(express,GestionnaireController,tokenController){
 =======
+=======
+>>>>>>> ae6bd3b38ea167dc72e6824718ad029389382532
 
 var winston = require('../config/winston');
 const datetime = require('node-datetime');
 module.exports = function(accountController,express,GestionnaireController,tokenController){
+<<<<<<< HEAD
+>>>>>>> ae6bd3b38ea167dc72e6824718ad029389382532
+=======
 >>>>>>> ae6bd3b38ea167dc72e6824718ad029389382532
    
     const router = express.Router();
