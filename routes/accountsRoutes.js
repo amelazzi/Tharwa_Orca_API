@@ -12,7 +12,8 @@ module.exports = function(express,tokenController,accountController,notification
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
 router.post('/new',(req,res) =>{
-    
+    var dt = datetime.create();
+    var formatted = dt.format('Y/m/d:H:M:S');
     const token = req.headers['token']; 
     tokenController(token, function(OauthResponse){
         if (OauthResponse.statutCode == 200){
@@ -39,6 +40,9 @@ router.post('/new',(req,res) =>{
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 router.put('/validate',(req,res) =>{
+
+    var dt = datetime.create();
+    var formatted = dt.format('Y/m/d:H:M:S');
 
     //récupérer le Access token du banquier qui veut valider le compte banquaire
     const token = req.headers['token']; 
@@ -85,6 +89,9 @@ router.put('/validate',(req,res) =>{
 /*-----------------------------------------------------------------------------------------------------------------------*/
 router.put('/reject',(req,res) =>{
 
+    var dt = datetime.create();
+   var formatted = dt.format('Y/m/d:H:M:S');
+
     //récupérer le Access token du banquier qui veut valider le compte banquaire
     const token = req.headers['token']; 
     tokenController(token, function(OauthResponse){
@@ -130,6 +137,9 @@ router.put('/reject',(req,res) =>{
 /*-----------------------------------------------------------------------------------------------------------------------*/
 router.get('/compteNonValide',(req,res) =>{
 
+    var dt = datetime.create();
+    var formatted = dt.format('Y/m/d:H:M:S');
+
     const token = req.headers['token']; //récupérer le Access token
            
     tokenController(token, function(OauthResponse){
@@ -161,6 +171,9 @@ router.get('/compteNonValide',(req,res) =>{
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 router.put('/bloc',(req,res) =>{
+
+    var dt = datetime.create();
+    var formatted = dt.format('Y/m/d:H:M:S');
 
     //récupérer le Access token du banquier qui veut valider le compte banquaire
     const token = req.headers['token']; 
@@ -208,6 +221,9 @@ router.put('/bloc',(req,res) =>{
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 router.put('/debloc',(req,res) =>{
+
+    var dt = datetime.create();
+    var formatted = dt.format('Y/m/d:H:M:S');
 
     //récupérer le Access token du banquier qui veut valider le compte banquaire
     const token = req.headers['token']; 

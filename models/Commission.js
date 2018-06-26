@@ -16,7 +16,7 @@ module.exports = function(sequelize, DataTypes) {
       }
     },
     Date: {
-      type: DataTypes.DATE,
+      type: DataTypes.STRING,
       allowNull: false
     },
     Montant: {

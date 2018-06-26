@@ -25,6 +25,7 @@ function operation(option,callback){
             
 
         }).catch(err => {
+            console.log(err)
             response = {
                 'statutCode' : 500, // error
                 'error': 'erreur dans l\'execution de la requete'          
@@ -48,6 +49,7 @@ function operation(option,callback){
                 
     
             }).catch(err => {
+                console.log(err)
                 response = {
                     'statutCode' : 500, // error
                     'error': 'erreur dans l\'execution de la requete'          
@@ -72,6 +74,7 @@ function operation(option,callback){
                 
     
             }).catch(err => {
+                console.log(err)
                 response = {
                     'statutCode' : 500, // error
                     'error': 'erreur dans l\'execution de la requete'          
@@ -102,6 +105,7 @@ function commission(option,callback){
             
 
         }).catch(err => {
+            console.log(err)
             response = {
                 'statutCode' : 500, // error
                 'error': 'erreur dans l\'execution de la requete'          
@@ -123,6 +127,7 @@ function commission(option,callback){
             
 
         }).catch(err => {
+            console.log(err)
             response = {
                 'statutCode' : 500, // error
                 'error': 'erreur dans l\'execution de la requete'          
@@ -144,6 +149,7 @@ function commission(option,callback){
                 
     
             }).catch(err => {
+                console.log(err)
                 response = {
                     'statutCode' : 500, // error
                     'error': 'erreur dans l\'execution de la requete'          
@@ -165,6 +171,7 @@ function commission(option,callback){
                 
     
             }).catch(err => {
+                console.log(err)
                 response = {
                     'statutCode' : 500, // error
                     'error': 'erreur dans l\'execution de la requete'          

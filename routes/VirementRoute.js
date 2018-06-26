@@ -235,16 +235,14 @@ router.get('/justificatif',(req,res) =>{
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 router.post('/externe',(req,res) =>{
-
-            
-            
+                
             usersController.FileUpload(req,res,'./justificatifs',(response)=>{
                     var dt = datetime.create();
                     var formatted = dt.format('Y/m/d:H:M:S');
                     const token = req.headers['token']; //récupérer le Access token
                     var nomDestinataire = req.body.nomDestinataire
                     var numCompteDestinataire = req.body.numCompteDestinataire
-                    var montant=req.body.montant;
+                    var montant=parseInt(req.body.montant);
                     var motif=req.body.motif;
                     tokenController(token, function(OauthResponse){
                         if (OauthResponse.statutCode == 200){
@@ -273,13 +271,13 @@ router.post('/externe',(req,res) =>{
                                 }else {
                                     
                                     imagePath=null
-                                    VirementController.virementExterne(OauthResponse.userId,montant,imagePath,numCompteDestinataire,nomDestinataire,motif,(response)=>{
-                                        if(response.statutCode == 200){
-                                            winston.info(`${formatted} Status=${response.statutCode} - message = ${response.succe} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
-                                            res.status(200).json({'succes': response.succes});
+                                    VirementController.virementExterne(OauthResponse.userId,montant,imagePath,numCompteDestinataire,nomDestinataire,motif,(response2)=>{
+                                        if(response2.statutCode == 200){
+                                            winston.info(`${formatted} Status=${response2.statutCode} - message = ${response2.succe} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
+                                            res.status(200).json({'succes': response2.succes});
                                         } else {
-                                            winston.error(`${formatted} Status=${response.statutCode} - message = ${response.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
-                                            res.status(response.statutCode).json({'error': response.error}); 
+                                            winston.error(`${formatted} Status=${response.statutCode} - message = ${response2.error} - originalURL=${req.originalUrl} - methode= ${req.method} - ip = ${req.ip}`);
+                                            res.status(response2.statutCode).json({'error': response2.error}); 
                                         }
                                  
                                     });

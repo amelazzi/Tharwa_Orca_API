@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<virement>
+  <numero>THW000006DZD2580DZD123456DZD201806251243</numero>
+  <date>201806251243</date>
+  <titulaire>
+    <nom>meriem meguelleti</nom>
+    <banque>THW</banque>
+    <compte>THW000006DZD</compte>
+  </titulaire>
+  <destinataire>
+    <nom>Hammi Mohamed</nom>
+    <banque>DZD</banque>
+    <compte>DZD123456DZD</compte>
+  </destinataire>
+  <montant>2580</montant>
+  <motif>123456</motif>
+</virement>

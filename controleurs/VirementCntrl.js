@@ -505,7 +505,10 @@ function validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,rep
     var nomRecepteur ={}
     var idEmetteur ={}
     var idRecepteur ={}
+    var motif ={}
+    var type = {}
 
+    
     Compte.findOne(
         {
             attributes:['IdUser'],
@@ -551,6 +554,8 @@ function validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,rep
                     idcommission=virement.IdCommission
                     nomEmetteur = virement.NomEmetteur
                     nomRecepteur = virement.NomDestinataire
+                    motif = virement.Motif
+                    type = virement.Type
                     console.log("le montant virement non encore validé "+MontantVirement+ "id de la commison finale"+idcommission)
                     callback()
                 }
@@ -579,6 +584,59 @@ function validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,rep
         
         function(callback){//Montant envoye par l'emmetteur pas encore envoyé
         console.log("le code est "+ code+ "compte emmetteur est "+comptemetteur+ "id de la commission est "+idcommission+ " montant de la commission est "+ montantcomm+ " le montant denvoi est "+MontantVirement)
+        if(type ==1 && statut == 1){
+
+            var dt = datetime.create();
+            var formatted = dt.format('YmdHM');
+            var date = formatted ; 
+            Virement.findOne(
+                {
+                    
+                    where: { 'Code' : code }
+                }
+            ).then((virementFound)=>{
+                if(virementFound){
+                    virementFound.update({
+                        Statut: 1
+                        
+                    }).then((virementFound)=>{
+                        if(virementFound){
+                            creatXmlVirementEmis (date,code,nomEmetteur,comptemetteur,nomRecepteur,comtpedestinataire,MontantVirement,motif,(err)=>{
+                                response = {
+                                    'statutCode' : Codes.code.SUCCESS, // success
+                                    'succes': "Virement pris"         
+                                }
+                                rep(response); 
+                            })
+                        }
+                    }).catch((err)=>{
+                        response = {
+                            'statutCode' : Codes.code.INTERNAL_ERROR, 
+                            'error': Erreur_francais.erreur_francais.virementnonreussi          
+                        }
+                        rep(response); 
+                    })
+
+                }else{
+                    response = {
+                        'statutCode' : Codes.code.NOT_FOUND, 
+                        'error': "Virement non trouvé"          
+                    }
+                    rep(response);
+                }
+            }).catch((err)=>{
+                console.log(err)
+                response = {
+                    'statutCode' : Codes.code.INTERNAL_ERROR, 
+                    'error': "Impossible de valider le virement"          
+                }
+                rep(response);
+            })
+           
+
+            
+
+        }else {
             fcts.validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,idcommission,montantcomm,MontantVirement,function(err,res){                
                 if (err){
                    
@@ -596,7 +654,7 @@ function validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,rep
                     console.log(statut)
 
                     if(statut == 1){
-                        
+                                               
                         console.log(idEmetteur)
                         console.log(nomRecepteur)
                         console.log(MontantVirement)
@@ -617,23 +675,28 @@ function validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,rep
                                 notificationController.addNotificationCommission(idEmetteur,1,0,montantcomm,(idNotification)=>{
 
                                     
-
+ 
                                     //envoi de notification mobile "Commission d'opération"
                                     notificationController.sendNotification(idEmetteur,idNotification)
                                     notificationController.sendNotificationMail(idEmetteur,idNotification)
-
-                                    notificationController.addNotificationVirementRecu(idRecepteur,nomEmetteur,MontantVirement,(idNotification)=>{
+                                    console.log(idRecepteur)
+                                  /*  notificationController.addNotificationVirementRecu(idRecepteur,nomEmetteur,MontantVirement,(idNotification)=>{
 
                                         //envoi de notification mobile "Virement recu"
                                         notificationController.sendNotification(idRecepteur,idNotification)
                                         notificationController.sendNotificationMail(idRecepteur,idNotification)
 
-                                    })
+                                    })*/
 
                                 })
                             })
 
-                        }
+                            response = {
+                                'statutCode' : Codes.code.SUCCESS, // success
+                                'Success': Erreur_francais.erreur_francais.virementreussi    
+                            }
+                            rep(response);
+                    }
                         else { 
 
                             notificationController.addNotificationVirementEmis(idEmetteur,nomRecepteur ,MontantVirement,0,(idNotification)=>{
@@ -643,15 +706,18 @@ function validerRejeterVirement(code,comptemetteur,comtpedestinataire,statut,rep
 
                             
                             })
+                            response = {
+                                'statutCode' : Codes.code.SUCCESS, // success
+                                'Success': "Virement non accepté"    
+                            }
+                            rep(response);
 
                     }
-                    response = {
-                        'statutCode' : Codes.code.SUCCESS, // success
-                        'Success': Erreur_francais.erreur_francais.virementreussi    
-                    }
-                    rep(response); 
+                    
                  }
     })
+
+}
 }
 })
 }
@@ -849,6 +915,13 @@ function xmlParse(cheminFichier,callback){
 
                             if(responseFct.statutCode == 200){
                                 creatXmlVirementEmis (date,numVirement,nomemmetteur,numcompteemmetteur,nomDestinataire,Comptedest,montant,Motif,(err)=>{
+                                    
+                                    
+                                    notificationController.addNotificationVirementEmis(iduseremmetteur,nomDestinataire,montant,1,(idNotification)=>{
+                                           //envoi de notification mobile "Virement emis non validé"
+                                           notificationController.sendNotification(iduseremmetteur,idNotification)
+
+                                    });
                                     response = {
                                         'statutCode' : Codes.code.SUCCESS, // success
                                         'succes': "Virement pris"         
@@ -870,22 +943,28 @@ function xmlParse(cheminFichier,callback){
                         if (imagePath.substr(0,13 )=='justificatifs'){
 
                             console.log("require justificatif")
-
-                            fcts.AddVirementClientTharwaEnAttente(montant,Comptedest,numcompteemmetteur,Motif,nomemmetteur,imagePath,nomrecepteur,pourcentagecomm,residcomm,function(err,res){
-                                if (err){  
-                                    console.log(err)                      
-                                    response = {
-                                        'statutCode' : Codes.code.NOT_FOUND, // success
-                                        'error': Erreur_francais.erreur_francais.vir_justif_noneffetue         
-                                    }
-                                    rep(response); 
-                                 }
-                                 else{
+                            var dt = datetime.create();
+                            var formatted = dt.format('YmdHM');
+                            var formatted2 = dt.format('Y-m-dTH:M:S');
+                            var date = formatted ; 
+                            var date2 = formatted2
+                            var numVirement = numcompteemmetteur+montant+Comptedest+date
+                            fcts.AddVirementExterneEnAttente(date2,numVirement,numcompteemmetteur,nomemmetteur,Comptedest,nomDestinataire,montant,Motif,imagePath,residcomm,pourcentagecomm,(responseFct)=>{
+                                if (responseFct.statutCode == 200){  
                                     response = {
                                         'statutCode' : Codes.code.SUCCESS, // success
-                                        'Success': Erreur_francais.erreur_francais.vir_justif_effetue      
+                                        'Success': "Virement en attente de validation"      
                                     }
                                     rep(response)
+                                 }
+                                 else{
+                                                        
+                                    response = {
+                                        'statutCode' : responseFct.statutCode, // success
+                                        'error': responseFct.error         
+                                    }
+                                    rep(response); 
+                                   
                                  }
                             
                             })

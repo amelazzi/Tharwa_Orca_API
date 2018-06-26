@@ -548,7 +548,7 @@ function sendNotification(idUser,idNotification){
 
 
 function sendNotificationMail(idUser,idNotification){
-++
+
    
         createNotificationMessage(idNotification,(notification)=>{
        // clientsConnectes.get(idUser).emit('notification',notification.message)
@@ -597,7 +597,7 @@ function addNotificationVirementEmistest(idUser,NomRecepteur,montant,etat,callba
 //exporter les procedure :
 return {addNotificationCompte,addNotificationVirementEntreSesComptes,addNotificationVirementEmis,
         addNotificationVirementRecu,addNotificationCommission,marquerNotificationLue,getUnreadNotifications,
-        createNotificationMessage,sendNotification,addNotificationVirementEmistest,addNotificationVirementRecuTest};
+        createNotificationMessage,sendNotification,addNotificationVirementEmistest,addNotificationVirementRecuTest,sendNotificationMail};
 
 
 }    

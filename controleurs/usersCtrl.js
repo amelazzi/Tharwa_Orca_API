@@ -33,11 +33,11 @@ function createUserAccount(req, res,type,callback){
 
     
    //tout d'abord, vérifier si l'utilisateur est déjà présent dans la BDD THARWA
-   const value = sequelize.escape(id);
-   var idd = sequelize.literal(`userId = CONVERT(varchar, ${value})`)     
+  // const value = sequelize.escape(id);
+  // var idd = sequelize.literal(`userId = CONVERT(varchar, ${value})`)     
    User.findOne({
         attributes:['userId'],
-        where: {  idd } 
+        where: {  userId : id } 
         
     })
     .then(function(userFound){ 
@@ -81,12 +81,13 @@ function createUserAccount(req, res,type,callback){
        }
     })
     .catch(function(err){
+        console.log(err);
         response = {
             'statutCode' : 500, //internal error
             'error':'Can\'t verify parameters'          
         }
         callback(response);
-        console.log(err);
+       
     });
 
  }
@@ -98,48 +99,48 @@ function createUserAccount(req, res,type,callback){
 
 /*-----------------------------------------------------------------------------------------------------------------------*/
 
-    function BankerInscription (idGestionnaire,req,res){
+function BankerInscription (idGestionnaire,req,res){
         
-                id = idGestionnaire; //recupérer le id du gestionnaire
-                const value = sequelize.escape(id);
-                var idd = sequelize.literal(`userId = CONVERT(varchar, ${value})`)
-                User.findOne({ //rechercher l'utilisateur dans La BDD THARWA
-                    attributes:['userId','type'],
-                    where: {  idd }
-                    
-                })
-                .then(function(userFound){
-                   if(userFound){ //si le gestionnaire est trouvé
-                      
-                      //vérifier son type (que c'est vraiment un gestionnaire)
-                      if(userFound.type == 0 ){
-                           //procéder à la création du compte utilisateur pour le banquier : 
-                           createUserAccount(req,res,1,(response) => {
-                               if (response.statutCode == 201){
-                                  res.status(response.statutCode).json({'id':response.Id});
-                               }else {
-                                  res.status(response.statutCode).json({'error':response.error});
-                               }
-                                
-                           });
-
-                      }else {
-                            //Ce n'est pas un gestionnaire -> l'opération de création n'est pas permise
-                            res.status(401).json({'error':'Unothorized Operation'}); 
-                      }
-                   }else{
-                     // utilisateur non trouvé      
-                       res.status(404).json({'error':'User not found'});
+    id = idGestionnaire; //recupérer le id du gestionnaire
+    //const value = sequelize.escape(id);
+    //var idd = sequelize.literal(`userId = CONVERT(varchar, ${value})`)
+    User.findOne({ //rechercher l'utilisateur dans La BDD THARWA
+        attributes:['userId','type'],
+        where: { userId : id }
+        
+    })
+    .then(function(userFound){
+       if(userFound){ //si le gestionnaire est trouvé
+          
+          //vérifier son type (que c'est vraiment un gestionnaire)
+          if(userFound.type == 0 ){
+               //procéder à la création du compte utilisateur pour le banquier : 
+               createUserAccount(req,res,1,(response) => {
+                   if (response.statutCode == 201){
+                      res.status(response.statutCode).json({'id':response.Id});
+                   }else {
+                      res.status(response.statutCode).json({'error':response.error});
                    }
-                })
-                .catch(function(err){
-                    //Si une erreur interne au serveur s'est produite :
-                     res.status(500).json({'error':'Can\'t verify user'}); 
-                     console.log(err);
-                });
-         
-    }
+                    
+               });
 
+          }else {
+                //Ce n'est pas un gestionnaire -> l'opération de création n'est pas permise
+                res.status(401).json({'error':'Unothorized Operation'}); 
+          }
+       }else{
+         // utilisateur non trouvé      
+           res.status(404).json({'error':'User not found'});
+       }
+    })
+    .catch(function(err){
+        //Si une erreur interne au serveur s'est produite :
+        console.log(err);
+        // res.status(500).json({'error':'Can\'t verify user'}); 
+         
+    });
+
+}
 
 /*-----------------------------------------------------------------------------------------------------------------------*/   
 
